@@ -3,52 +3,42 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
-#include <boost/shared_ptr.hpp>
 #include "FileInfo.h"
 #include "progress.h"
+
+
+
 
 
 void sender(asio::io_service& io, const char* ip_address, unsigned port, const char* filename)
 {
   typedef asio::ip::tcp TCP;
-  
-  FILE *fp = fopen(filename, "rb");
-  if (fp == NULL) {
-    std::cerr << "cannot open file\n";
-    return;
-  }
-  fseek(fp,0,SEEK_END);
-  long filesize=ftell(fp);
-  fseek(fp,0,SEEK_SET);
-  
-  //使用智能指针，防止程序出现异常时，fclose未被调用。
-  boost::shared_ptr<FILE> file_ptr(fp, fclose);
-  
-  clock_t cost_time = clock();
-  
-  const size_t k_buffer_size = 32 * 1024;
+  //open file and read
+  FileInfo info(filename);
+  FILE* fp =info.getFileInstance();
+
+//make buffer for pack
+  const size_t k_buffer_size = 64 * KB;
   char buffer[k_buffer_size];
-  File_info file_info;
-  
+
+//make first pack
+  File_info file_info=info.getinfo();
+
   int filename_size  = strlen(filename) + 1;
   size_t file_info_size = sizeof(file_info);
   size_t total_size = file_info_size + filename_size;
   if (total_size > k_buffer_size) {
-    std::cerr << "File name is too long";
+    throw std::string("File name is too long");
     return;
   }
-  file_info.filename_size = filename_size;
-  
-  fseek(fp, 0, SEEK_END);
-  file_info.filesize = ftell(fp);
-  rewind(fp);
-
   memcpy(buffer, &file_info, file_info_size);
   memcpy(buffer + file_info_size, filename, filename_size);
+//start to send
 
+  clock_t cost_time = clock();
   TCP::socket socket(io);
   socket.connect(TCP::endpoint(asio::ip::address_v4::from_string(ip_address), port));
-  
+
   std::cout << "Sending file : " << filename << "\n";
   size_t len = total_size;
   unsigned long long total_bytes_read = 0;
@@ -57,7 +47,7 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
     if (feof(fp)) break;
     len = fread(buffer, 1, k_buffer_size, fp);
     total_bytes_read += len;
-    float p=(float)total_bytes_read/(float)filesize*25;
+    float p=(float)total_bytes_read/(float)file_info.filesize*25;
     consoleProgress::pushProgress(p);
   }
   
