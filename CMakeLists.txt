@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.0.0)
+project(socket_client VERSION 0.1.0)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/runtime)
+include_directories("/usr/local/include" ${PROJECT_SOURCE_DIR}/include)
+link_directories("/usr/local/lib")
+add_executable(socket_client main.cpp)
