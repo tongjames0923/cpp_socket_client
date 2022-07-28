@@ -5,6 +5,7 @@
 #include <cstring>
 #include <boost/shared_ptr.hpp>
 #include "FileInfo.h"
+#include "progress.h"
 
 
 void sender(asio::io_service& io, const char* ip_address, unsigned port, const char* filename)
@@ -53,6 +54,7 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
     if (feof(fp)) break;
     len = fread(buffer, 1, k_buffer_size, fp);
     total_bytes_read += len;
+    consoleProgress::pushProgress((float)total_bytes_read/(float)total_size);
   }
   
   cost_time = clock() - cost_time;
@@ -63,6 +65,12 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
     << "speed: " <<  speed << " MB/s\n\n"; 
 }
 
+void sendAction()
+{
+  asio::io_service io;
+  sender(io, "127.0.0.1", 1997, "/Users/abstergo/Desktop/test.data");
+}
+
 int main(int args, char* argc[])
 {
 //   if (args < 3) {
@@ -70,8 +78,8 @@ int main(int args, char* argc[])
 //     return 1;
 //   }
   
-  asio::io_service io;
-    try { sender(io,"127.0.0.1", 1997,"/Users/abstergo/Desktop/test.data"); }
+    try {
+      consoleProgress::progress(sendAction); }
     catch (std::exception& err) {
       std::cerr << err.what() << "\n";
     }
