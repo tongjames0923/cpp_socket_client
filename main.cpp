@@ -17,6 +17,9 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
     std::cerr << "cannot open file\n";
     return;
   }
+  fseek(fp,0,SEEK_END);
+  long filesize=ftell(fp);
+  fseek(fp,0,SEEK_SET);
   
   //使用智能指针，防止程序出现异常时，fclose未被调用。
   boost::shared_ptr<FILE> file_ptr(fp, fclose);
@@ -54,7 +57,8 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
     if (feof(fp)) break;
     len = fread(buffer, 1, k_buffer_size, fp);
     total_bytes_read += len;
-    consoleProgress::pushProgress((float)total_bytes_read/(float)total_size);
+    float p=(float)total_bytes_read/(float)filesize*25;
+    consoleProgress::pushProgress(p);
   }
   
   cost_time = clock() - cost_time;
@@ -68,7 +72,7 @@ void sender(asio::io_service& io, const char* ip_address, unsigned port, const c
 void sendAction()
 {
   asio::io_service io;
-  sender(io, "127.0.0.1", 1997, "/Users/abstergo/Desktop/test.data");
+  sender(io, "192.168.50.55", 1997, "/Users/abstergo/Desktop/test.data");
 }
 
 int main(int args, char* argc[])
@@ -77,8 +81,9 @@ int main(int args, char* argc[])
 //     std::cerr << "Usage: " << argc[0] << " ip_address  filename1 filename2 \n"; 
 //     return 1;
 //   }
-  
     try {
+      
+      consoleProgress::setLen(25);
       consoleProgress::progress(sendAction); }
     catch (std::exception& err) {
       std::cerr << err.what() << "\n";
