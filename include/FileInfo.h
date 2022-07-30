@@ -2,6 +2,7 @@
 #define _FILE_INFO_H_
 #include <boost/asio.hpp>
 #include <string>
+#include <fstream>
 namespace asio
 {
     using namespace boost::asio;
@@ -16,26 +17,25 @@ const long KB=1024,MB=KB*1024;
 
 struct File_info
 {
-    typedef unsigned long long Size_type;
-    Size_type filesize;
+    size_t filesize;
     size_t filename_size;
     File_info() : filesize(0), filename_size(0) {}
 };
+
+using fileReadCallback=void(*)(int packNum,size_t bufferd,size_t totalRead);
+
 class FileInfo
 {
     private:
-    FILE* fp=nullptr;
+    std::ifstream file;
     File_info info;
     std::string filePath;
+    size_t fileSize();
     public:
-    FileInfo();
-    ~FileInfo();
     FileInfo(const std::string);
-    File_info getinfo();
-    std::string getFile();
-    void readFile(const std::string);
-    void closeFile();
-    FILE* getFileInstance();
+    size_t getFileSize() const;
+    std::string getFileName() const;
+    bool readFile(char* buffer,size_t bufferSize,fileReadCallback callback);
 };
 
 #endif
