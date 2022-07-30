@@ -1,51 +1,47 @@
 #include "FileInfo.h"
 #include <cstdio>
-FileInfo::FileInfo()
+using namespace std;
+size_t FileInfo::fileSize()
 {
-
+    streampos cur=file.tellg();
+    file.seekg(0,ios_base::end);
+    streampos e=file.tellg();
+    size_t r=e;
+    file.seekg(cur,ios_base::beg);
+    return e;
 }
-FileInfo::~FileInfo()
+FileInfo::FileInfo(const std::string filepath)
 {
-    closeFile();
-}
-FileInfo::FileInfo(const std::string path)
-{
-    readFile(path);
-
-}
-void FileInfo::readFile(const std::string filename)
-{
-    closeFile();
-
-    this->filePath = filename;
-    fp = fopen(filename.c_str(), "rb");
-    if (fp == NULL)
+    file.open(filepath,ios_base::in);
+    if(!file.is_open())
     {
-        throw std::string("file open fail");
+        throw "wrong file Path";
     }
-    this->info.filename_size=filename.length()+1;
-    fseek(fp, 0, SEEK_END);
-    this->info.filesize = ftell(fp);
-    rewind(fp);
+    this->filePath=filepath;
+    this->info.filename_size=filepath.length()+1;
+    this->info.filesize=fileSize();
 }
-File_info FileInfo::getinfo()
+size_t FileInfo::getFileSize() const
 {
-    return this->info;
+    return info.filesize;
 }
-std::string FileInfo::getFile()
+std::string FileInfo::getFileName() const
 {
     return filePath;
 }
-FILE * FileInfo::getFileInstance()
+bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callback)
 {
-    return fp;
-}
-void FileInfo::closeFile()
-{
-    if(fp!=nullptr)
+    streampos cur = file.tellg();
+    file.seekg(0,ios_base::beg);
+    size_t hasread=0,singleRead=0,pack=0;
+    while (!file.eof())
     {
-        fclose(fp);
-        fp=nullptr;
+        file.read(buffer,bufferSize);
+        singleRead =file.gcount();
+        hasread += singleRead;
+        callback(++pack,singleRead,hasread);
     }
-
+    bool suc = hasread == getFileSize();
+    file.seekg(cur,ios_base::beg);
+    return suc;
 }
