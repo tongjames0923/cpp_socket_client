@@ -3,6 +3,7 @@ using namespace std;
 asio::io_service io;
 asio::io_service& getContext ()
 {
+
   return io;
 }
 FileSender::~FileSender ()
@@ -10,9 +11,8 @@ FileSender::~FileSender ()
     if(m_socket.is_open())
     m_socket.close();
 }
-FileSender::FileSender (const std::string &ip, const unsigned int &port):m_ip(ip),m_port(port),m_socket(io)
+FileSender::FileSender (const std::string &ip, const unsigned int &port):m_ip(ip),m_port(port),m_socket(getContext())
 {
-
 }
 FileSender::FileSender () : m_socket (getContext ()) 
 {

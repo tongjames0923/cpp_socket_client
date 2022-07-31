@@ -12,7 +12,7 @@ size_t FileInfo::fileSize()
 }
 FileInfo::FileInfo(const std::string filepath)
 {
-    file.open(filepath,ios_base::in);
+    file.open(filepath,ios_base::binary);
     if(!file.is_open())
     {
         throw "wrong file Path";

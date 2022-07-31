@@ -14,9 +14,6 @@ using boost::system::error_code;
 #endif
 
 typedef asio::ip::tcp TCP;
-
-asio::io_service &getContext ();
-
 class FileSender
 {
 private:
