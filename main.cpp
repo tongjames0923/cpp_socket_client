@@ -1,16 +1,36 @@
-//www.cnblogs.com/flyinghearts
+// www.cnblogs.com/flyinghearts
 
-#include <iostream>
+#include "FileInfo.h"
+#include "FileSender.h"
+#include "progress.h"
 #include <cstdio>
 #include <cstring>
-#include "FileInfo.h"
-#include "progress.h"
-
-
+#include <iostream>
 
 using namespace std;
 
-// void sender(asio::io_service& io, const char* ip_address, unsigned port, const char* filename)
+const size_t bufferLen = 64 * KB;
+const size_t progressLen=25;
+char buffer[bufferLen];
+FileSender sender ("127.0.0.1", 1997);
+size_t
+makeHead (const FileInfo &info)
+{
+  size_t filename_size = info.getFileName ().length () + 1;
+  size_t file_info_size = sizeof (File_info);
+  size_t total_size = file_info_size + filename_size;
+  if (total_size > bufferLen)
+    {
+      throw std::string ("File name is too long");
+    }
+  memcpy (buffer, &info, file_info_size);
+  memcpy (buffer + file_info_size, info.getFileName ().c_str (),
+          filename_size);
+  return total_size;
+}
+
+// void sender(asio::io_service& io, const char* ip_address, unsigned port,
+// const char* filename)
 // {
 //   typedef asio::ip::tcp TCP;
 //   //open file and read
@@ -37,7 +57,8 @@ using namespace std;
 
 //   clock_t cost_time = clock();
 //   TCP::socket socket(io);
-//   socket.connect(TCP::endpoint(asio::ip::address_v4::from_string(ip_address), port));
+//   socket.connect(TCP::endpoint(asio::ip::address_v4::from_string(ip_address),
+//   port));
 
 //   std::cout << "Sending file : " << filename << "\n";
 //   size_t len = total_size;
@@ -50,41 +71,67 @@ using namespace std;
 //     float p=(float)total_bytes_read/(float)file_info.filesize*25;
 //     consoleProgress::pushProgress(p);
 //   }
-  
+
 //   cost_time = clock() - cost_time;
 //   if (cost_time == 0) cost_time = 1;
-//   double speed = total_bytes_read * (CLOCKS_PER_SEC / 1024.0 / 1024.0) / cost_time;
-//   std::cout << "cost time: " << cost_time / (double) CLOCKS_PER_SEC  << " s " 
+//   double speed = total_bytes_read * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
+//   cost_time; std::cout << "cost time: " << cost_time / (double)
+//   CLOCKS_PER_SEC  << " s "
 //     << "  transferred_bytes: " << total_bytes_read << " bytes\n"
-//     << "speed: " <<  speed << " MB/s\n\n"; 
+//     << "speed: " <<  speed << " MB/s\n\n";
 // }
-
-// void sendAction()
-// {
-//   asio::io_service io;
-//   sender(io, "192.168.50.55", 1997, "/Users/abstergo/Desktop/test.data");
-// }
-
-ofstream out("outfile.data");
-char b[64 * 1024];
-int main(int args, char* argc[])
+string filePath = "C:\\Users\\Abstergo\\Desktop\\报告.docx";
+size_t fileTotal;
+bool isok=false;
+void
+sendAction ()
 {
-//   if (args < 3) {
-//     std::cerr << "Usage: " << argc[0] << " ip_address  filename1 filename2 \n"; 
-//     return 1;
-//   }
-    // try {
-      
-    //   consoleProgress::setLen(25);
-    //   consoleProgress::progress(sendAction); }
-    // catch (std::exception& err) {
-    //   std::cerr << err.what() << "\n";
-    // }
-    FileInfo file("/Users/abstergo/Desktop/test.data");
+  FileInfo file(filePath);
+  fileTotal=file.getFileSize();
+  sender.connect ();
+  isok = false;
+  size_t callback = 0;
+  size_t firstpack = makeHead (file);
+  callback = sender.send (buffer, firstpack);
+  if (callback == firstpack)
+    {
+     isok= file.readFile (buffer, bufferLen,
+                     ([] (int pack, size_t per, size_t total) {
+                      sender.send(buffer,per);
+                      float pec=(float)total/fileTotal*progressLen;
+                      consoleProgress::pushProgress(pec);
+                     }));
+    }
+  else
+    {
+      cout << "头包发送失败..." << endl;
+    }
+}
 
-   cout<< file.readFile(b,64*1024,([](int pack,size_t per,size_t total){
-      printf("read at %d packs,read %ld,total read %ld\n",pack,per,total);
-      out.write(b,per);
-      printf("%d pack has writed\n",pack);
-    }))<<endl;
+int
+main (int args, char *argc[])
+{
+  //   if (args < 3) {
+  //     std::cerr << "Usage: " << argc[0] << " ip_address  filename1 filename2
+  //     \n"; return 1;
+  //   }
+  try {
+
+    consoleProgress::setLen(progressLen);
+    clock_t cost_time = clock ();
+    consoleProgress::progress(sendAction);
+    cost_time = clock () - cost_time;
+    std::cout << "cost time: " << cost_time / (double)
+     CLOCKS_PER_SEC  << " s ";
+     if(isok)
+     {
+       double speed =fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
+         cost_time;
+       cout <<"Speed"<< speed << " MB/s"<<endl;
+     }
+    }
+
+  catch (std::exception& err) {
+    std::cerr << err.what() << "\n";
+  }
 }
