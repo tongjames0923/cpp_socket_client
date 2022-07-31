@@ -125,13 +125,18 @@ int main(int args, char *argc[])
 {
   try
   {
-    // if (args != 3)
-    // {
-    //   cout << "usage socket_client <target_ip> <file_Location>" << endl;
-    //   return 0;
-    // }
-    //filePath = string(argc[2]);
+    #ifndef Debug
+    if (args != 3)
+    {
+      cout << "usage socket_client <target_ip> <file_Location>" << endl;
+      return 0;
+    }
+    filePath = string(argc[2]);
+    FileSender sr(argc[1], 1997);
+    #else
     FileSender sr("127.0.0.1", 1997);
+#endif // !Debug
+
     sender=&sr;
     cout << "init..." << endl;
     consoleProgress::setLen(progressLen);
