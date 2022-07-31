@@ -32,4 +32,5 @@ public:
   std::string getIP () const;
   unsigned int getPort () const;
   size_t send (char *buffer, size_t size);
+  size_t recive(char* buffer,size_t size);
 };

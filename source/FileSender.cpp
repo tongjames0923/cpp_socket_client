@@ -61,3 +61,11 @@ size_t FileSender::send (char *buffer, size_t size)
     }
     return -1;
 }
+size_t FileSender::recive(char *buffer, size_t size)
+{
+  if (m_socket.is_open())
+  {
+    return m_socket.receive(asio::buffer(buffer,size));
+  }
+  return -1;
+}
