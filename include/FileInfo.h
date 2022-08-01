@@ -3,6 +3,7 @@
 
 #include <string>
 #include <fstream>
+#include <functional>
 
 const long KB=1024,MB=KB*1024;
 
@@ -14,7 +15,14 @@ struct File_info
     File_info() : filesize(0), filename_size(0) {}
 };
 
-using fileReadCallback=void(*)(int packNum,size_t bufferd,size_t totalRead);
+/**
+ * @brief 文件读取回调
+ * @param  int =当前包序号
+ * @param  size_t = 本次读取字节数 
+ * @param size_t =总共读取字节数
+ * @return bool 读取是否继续
+ */
+typedef std::function<bool(int,size_t,size_t)> fileReadCallback;
 
 class FileInfo
 {

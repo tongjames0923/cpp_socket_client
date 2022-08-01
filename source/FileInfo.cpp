@@ -34,12 +34,13 @@ bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callba
     streampos cur = file.tellg();
     file.seekg(0,ios_base::beg);
     size_t hasread=0,singleRead=0,pack=0;
-    while (!file.eof())
+    bool iscon=true;
+    while (!file.eof()&&iscon)
     {
         file.read(buffer,bufferSize);
         singleRead =file.gcount();
         hasread += singleRead;
-        callback(++pack,singleRead,hasread);
+        iscon=callback(++pack,singleRead,hasread);
     }
     bool suc = hasread == getFileSize();
     file.seekg(cur,ios_base::beg);

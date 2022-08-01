@@ -1,71 +1,82 @@
 #include "FileSender.h"
+#include <boost/bind.hpp>
+#include <iostream>
 using namespace std;
 asio::io_service io;
-asio::io_service& getContext ()
+asio::io_service &getContext()
 {
 
   return io;
 }
-FileSender::~FileSender ()
+FileSender::~FileSender()
 {
-    if(m_socket.is_open())
+  if (m_socket.is_open())
     m_socket.close();
 }
-FileSender::FileSender (const std::string &ip, const unsigned int &port):m_ip(ip),m_port(port),m_socket(getContext())
+FileSender::FileSender(const std::string &ip, const unsigned int &port) : m_ip(ip), m_port(port), m_socket(getContext())
 {
 }
-FileSender::FileSender () : m_socket (getContext ()) 
+FileSender::FileSender() : m_socket(getContext())
 {
+}
+bool FileSender::connect()
+{
+  return connect(m_ip, m_port);
+}
 
-}
-FileSender &FileSender::connect () 
+int connectFinal(const boost::system::error_code &err, bool &con)
 {
-   return  connect(m_ip,m_port);
+  if (!err)
+    con = true;
+  return 0;
 }
-FileSender &FileSender::connect (const std::string &ip,
-                                 const unsigned int &port)
-                                 {
-                                   if (m_socket.is_open ())
-                                     {
-                                       m_socket.close ();
-                                     }
-                                   m_socket.connect (TCP::endpoint (
-                                       asio::ip::address_v4::from_string (
-                                           ip.c_str ()),
-                                       port));
-                                       return *this;
-                                 }
-FileSender &FileSender::setIp (const std::string &ip)
+
+bool FileSender::connect(const std::string &ip,
+                         const unsigned int &port)
 {
-    m_ip=ip;
-    return *this;
+  if (m_socket.is_open())
+  {
+    m_socket.close();
+  }
+  boost::system::error_code ec;
+  m_socket.connect(TCP::endpoint(
+                       asio::ip::address_v4::from_string(
+                           ip.c_str()),
+                       port),
+                   ec);
+  return !ec.operator bool();
 }
-FileSender &FileSender::setPort (const unsigned int &port)
+FileSender &FileSender::setIp(const std::string &ip)
 {
-    m_port=port;
-    return *this;
+  m_ip = ip;
+  return *this;
 }
-std::string FileSender::getIP () const
+FileSender &FileSender::setPort(const unsigned int &port)
 {
-    return this->m_ip;
+  m_port = port;
+  return *this;
 }
-unsigned int FileSender::getPort () const
+std::string FileSender::getIP() const
 {
-    return m_port;
+  return this->m_ip;
 }
-size_t FileSender::send (char *buffer, size_t size)
+unsigned int FileSender::getPort() const
 {
-    if(m_socket.is_open())
-    {
-      return   m_socket.send(asio::buffer(buffer,size));
-    }
-    return -1;
+  return m_port;
+}
+size_t FileSender::send(char *buffer, size_t size)
+{
+  if (m_socket.is_open())
+  {
+    return m_socket.send(asio::buffer(buffer, size));
+  }
+  return -1;
 }
 size_t FileSender::recive(char *buffer, size_t size)
 {
   if (m_socket.is_open())
   {
-    return m_socket.receive(asio::buffer(buffer,size));
+    return m_socket.receive(asio::buffer(buffer, size));
   }
   return -1;
 }

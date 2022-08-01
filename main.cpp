@@ -6,7 +6,7 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
-
+#define Debug
 using namespace std;
 
 const size_t bufferLen = 64 * KB;
@@ -88,11 +88,19 @@ size_t fileTotal;
 bool isok = false;
 void sendAction()
 {
-  cout << "reading..." << endl;
+  try
+  {
+      cout << "reading..." << endl;
   FileInfo file(filePath);
   fileTotal = file.getFileSize();
   cout << "connect..." << endl;
-  sender->connect();
+  bool isConnected= sender->connect();
+  if(!isConnected)
+  {
+    cout<<"fail to connect..."<<endl;
+      consoleProgress::pushProgress(progressLen);
+    return;
+  }
   cout << "connected..." << endl;
   isok = false;
   size_t callback = 0;
@@ -106,40 +114,59 @@ void sendAction()
   if (callback == firstpack && repCode == 99)
   {
     isok = file.readFile(buffer, bufferLen,
-                         ([](int pack, size_t per, size_t total)
+                         ([](int pack, size_t per, size_t total) -> bool
                           {
                       sender->send(buffer,per);
                       float pec=(float)total/fileTotal*progressLen;
-                      consoleProgress::pushProgress(pec); }));
-
+                      consoleProgress::pushProgress(pec); 
+                      return true;
+                      }));
   }
   else
   {
-    cout << "头包发送失败..." << endl;
+    cout << "sent fail..." << endl;
   }
   consoleProgress::pushProgress(progressLen);
-  cout << "ok" << endl;
+  }
+  catch(const std::exception& e)
+  {
+    std::cerr << e.what() << '\n';
+    consoleProgress::pushProgress(progressLen);
+  }
 }
 
 int main(int args, char *argc[])
 {
   try
   {
-    #ifndef Debug
-    if (args != 3)
+#ifndef Debug
+    if (args == 3)
     {
-      cout << "usage socket_client <target_ip> <file_Location>" << endl;
-      return 0;
-    }
     filePath = string(argc[2]);
     FileSender sr(argc[1], 1997);
-    #else
+    }
+    else if(args==4)
+    {
+      filePath = string(argc[3]);
+    FileSender sr(argc[1],atoi(argc[2]));
+    }
+    else{
+            cout << "usage socket_client <target_ip> <file_Location> or \n"<<
+            "usage socket_client <target_ip> <port> <file_Location> or \n"
+            
+             << endl;
+      return 0;
+    }
+
+#else
+
     FileSender sr("127.0.0.1", 1997);
 #endif // !Debug
 
-    sender=&sr;
+    sender = &sr;
     cout << "init..." << endl;
     consoleProgress::setLen(progressLen);
+    getContext().run();
     clock_t cost_time = clock();
     consoleProgress::progress(sendAction);
     cost_time = clock() - cost_time;
