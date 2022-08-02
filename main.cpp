@@ -6,7 +6,9 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+
 #define Debug
+
 using namespace std;
 
 const size_t bufferLen = 64 * KB;
@@ -135,6 +137,13 @@ void sendAction()
   }
 }
 
+
+int mx(int z)
+{
+  cout<<"hello world"<<z<<endl;
+  return z+1;
+}
+
 int main(int args, char *argc[])
 {
   try
@@ -144,11 +153,13 @@ int main(int args, char *argc[])
     {
     filePath = string(argc[2]);
     FileSender sr(argc[1], 1997);
+        sender = &sr;
     }
     else if(args==4)
     {
       filePath = string(argc[3]);
     FileSender sr(argc[1],atoi(argc[2]));
+        sender = &sr;
     }
     else{
             cout << "usage socket_client <target_ip> <file_Location> or \n"<<
@@ -161,12 +172,11 @@ int main(int args, char *argc[])
 #else
 
     FileSender sr("127.0.0.1", 1997);
+     sender = &sr;
 #endif // !Debug
 
-    sender = &sr;
     cout << "init..." << endl;
     consoleProgress::setLen(progressLen);
-    getContext().run();
     clock_t cost_time = clock();
     consoleProgress::progress(sendAction);
     cost_time = clock() - cost_time;

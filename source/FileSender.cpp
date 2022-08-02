@@ -1,7 +1,12 @@
 #include "FileSender.h"
-#include <boost/bind.hpp>
+#include <boost/bind/bind.hpp>
 #include <iostream>
+#include <chrono>
 using namespace std;
+using namespace boost::placeholders;
+
+#define BLOCKED
+
 asio::io_service io;
 asio::io_service &getContext()
 {
@@ -24,10 +29,10 @@ bool FileSender::connect()
   return connect(m_ip, m_port);
 }
 
-int connectFinal(const boost::system::error_code &err, bool &con)
+int connectFinal(const boost::system::error_code &err, bool* con)
 {
   if (!err)
-    con = true;
+    *con = true;
   return 0;
 }
 
@@ -38,13 +43,21 @@ bool FileSender::connect(const std::string &ip,
   {
     m_socket.close();
   }
-  boost::system::error_code ec;
-  m_socket.connect(TCP::endpoint(
+  auto endpoint=TCP::endpoint(
                        asio::ip::address_v4::from_string(
                            ip.c_str()),
-                       port),
+                       port);
+  bool result=false;
+  #ifdef BLOCKED
+  boost::system::error_code ec;
+  m_socket.connect(endpoint,
                    ec);
-  return !ec.operator bool();
+                   result=!ec.operator bool();
+  #else
+  m_socket.async_connect(endpoint,boost::bind(connectFinal,boost::asio::placeholders::error,&result));
+  getContext().run_for(chrono::milliseconds(5000));
+  #endif
+  return result;
 }
 FileSender &FileSender::setIp(const std::string &ip)
 {
