@@ -13,17 +13,6 @@ size_t FileInfo::fileSize()
     return e;
 }
 
-FileInfo::FileInfo(const std::string filepath)
-{
-    file.open(filepath, ios_base::binary);
-    if (!file.is_open())
-    {
-        throw "wrong file Path";
-    }
-    this->filePath = filepath;
-    this->info.filename_size = filepath.length() + 1;
-    this->info.filesize = fileSize();
-}
 
 size_t FileInfo::getFileSize() const
 {
@@ -50,5 +39,17 @@ bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callba
     }
     bool suc = hasread == getFileSize();
     file.seekg(cur, ios_base::beg);
-    return suc;
+    return suc&&iscon;
+}
+
+FileInfo::FileInfo(const string &path)
+{
+    file.open(path, ios_base::binary);
+    if (!file.is_open())
+    {
+        throw runtime_error("wrong file Path") ;
+    }
+    this->filePath = path;
+    this->info.filename_size = path.length() + 1;
+    this->info.filesize = fileSize();
 }

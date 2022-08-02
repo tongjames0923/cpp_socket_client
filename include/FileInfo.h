@@ -49,7 +49,7 @@ public:
      *
      * @param path 文件路径
      */
-    FileInfo(const std::string path);
+    explicit FileInfo(const std::string& path);
 
     /**
      *

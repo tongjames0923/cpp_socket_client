@@ -37,7 +37,6 @@ private:
     TCP::socket m_socket;
     std::string m_ip;
     unsigned int m_port;
-    long connectWait = 5000;
 
 public:
     ~SocketClient();
@@ -65,14 +64,6 @@ public:
      */
     bool connect(const std::string &ip, const unsigned int &port);
 
-    ///
-    /// \return 获取连接超时
-    long getConnectWait() const;
-
-    ///
-    /// \param connectWait 连接超时
-    /// \return 返回自身
-    SocketClient &setConnectWait(long connectWait);
 
     /// 设置ip
     /// \param ip
@@ -103,4 +94,8 @@ public:
     /// \param size 缓存区长度
     /// \return 接收到的数据长度
     size_t receive(char *buffer, size_t size);
+
+    ///关闭连接
+    void closeSocket();
+
 };

@@ -5,7 +5,7 @@
 #include <cstring>
 #include <iostream>
 
-#define Debug
+//#define Debug
 
 using namespace std;
 
@@ -64,50 +64,64 @@ void sendAction()
         int repCode = *(int *) repbuffer;
         if (callback == firstpack && repCode == 99)
         {
+            cout << "file send..." << endl;
             isok = file.readFile(buffer, bufferLen,
                                  ([](int pack, size_t per, size_t total) -> bool
                                  {
-                                     sender->send(buffer, per);
+                                     size_t sentSize = sender->send(buffer, per);
+                                     if (sentSize != per)
+                                     {
+                                         return false;
+                                     }
                                      float pec = (float) total / fileTotal * progressLen;
                                      consoleProgress::pushProgress(pec);
                                      return true;
                                  }));
+            if (isok)
+            {
+                consoleProgress::finish();
+            } else
+            {
+                cout << "pack sent fail..." << endl;
+                consoleProgress::abort();
+            }
         } else
         {
-            cout << "sent fail..." << endl;
+            cout << "head sent fail..." << endl;
+            consoleProgress::abort();
         }
-        consoleProgress::pushProgress(progressLen);
+
     }
     catch (const std::exception &e)
     {
-        std::cerr << e.what() << '\n';
-        consoleProgress::pushProgress(progressLen);
+        std::cout << e.what() << '\n';
+        consoleProgress::abort();
     }
 }
 
 int main(int args, char *argc[])
 {
+
     try
     {
 #ifndef Debug
         if (args == 3)
         {
-        filePath = string(argc[2]);
-        SocketClient sr(argc[1], 1997);
+            filePath = string(argc[2]);
+            SocketClient sr(argc[1], 1997);
             sender = &sr;
-        }
-        else if(args==4)
+        } else if (args == 4)
         {
-          filePath = string(argc[3]);
-        SocketClient sr(argc[1],atoi(argc[2]));
+            filePath = string(argc[3]);
+            SocketClient sr(argc[1], atoi(argc[2]));
             sender = &sr;
-        }
-        else{
-                cout << "usage socket_client <target_ip> <file_Location> or \n"<<
-                "usage socket_client <target_ip> <port> <file_Location> or \n"
+        } else
+        {
+            cout << "usage socket_client <target_ip> <file_Location> or \n" <<
+                 "usage socket_client <target_ip> <port> <file_Location> or \n"
 
                  << endl;
-          return 0;
+            return 0;
         }
 
 #else
