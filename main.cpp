@@ -21,7 +21,7 @@ size_t makeHead(const FileInfo &info)
     size_t total_size = file_info_size + filename_size;
     if (total_size > bufferLen)
     {
-        throw std::string("File name is too long");
+        throw runtime_error("File name is too long");
     }
     File_info ff;
     ff.filesize = info.getFileSize();

@@ -19,9 +19,10 @@ SocketClient::~SocketClient()
     closeSocket();
 }
 
-SocketClient::SocketClient(const std::string &ip, const unsigned int &port) : m_ip(ip), m_port(port),
+SocketClient::SocketClient(const std::string &ip, const unsigned int &port) : m_port(port),
                                                                           m_socket(getContext())
 {
+    setIp(ip);
 }
 
 SocketClient::SocketClient() : m_socket(getContext())
@@ -51,7 +52,8 @@ bool SocketClient::connect(const std::string &ip,
 
 SocketClient &SocketClient::setIp(const std::string &ip)
 {
-    m_ip = ip;
+    strcpy(m_ip,ip.c_str());
+    //m_ip = ip;
     return *this;
 }
 

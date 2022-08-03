@@ -35,7 +35,7 @@ class SocketClient
 {
 private:
     TCP::socket m_socket;
-    std::string m_ip;
+    char m_ip[256];
     unsigned int m_port;
 
 public:
