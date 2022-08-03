@@ -12,6 +12,11 @@ namespace asio
     using namespace boost::asio;
     using boost::system::error_code;
 }
+#define DEBUGMODE CONFIG_MODE_RELEASE
+#define VERSION 1.02
+#define CONFIG_MODE_DEBUG -1
+#define CONFIG_MODE_RELEASE 1
+
 #if BOOST_VERSION >= 107000
 #define GET_IO_SERVICE(s) \
   ((boost::asio::io_context &)(s).get_executor().context())
@@ -35,7 +40,7 @@ class SocketClient
 {
 private:
     TCP::socket m_socket;
-    std::string m_ip;
+    char m_ip[256];
     unsigned int m_port;
 
 public:

@@ -19,9 +19,10 @@ SocketClient::~SocketClient()
     closeSocket();
 }
 
-SocketClient::SocketClient(const std::string &ip, const unsigned int &port) : m_ip(ip), m_port(port),
-                                                                          m_socket(getContext())
+SocketClient::SocketClient(const std::string &ip, const unsigned int &port) : m_port(port),
+                                                                              m_socket(getContext())
 {
+    setIp(ip);
 }
 
 SocketClient::SocketClient() : m_socket(getContext())
@@ -34,7 +35,7 @@ bool SocketClient::connect()
 }
 
 bool SocketClient::connect(const std::string &ip,
-                         const unsigned int &port)
+                           const unsigned int &port)
 {
     closeSocket();
     auto endpoint = TCP::endpoint(
@@ -45,13 +46,13 @@ bool SocketClient::connect(const std::string &ip,
     boost::system::error_code ec;
     m_socket.connect(endpoint,
                      ec);
-                     result=!ec.operator bool();
+    result = !ec.operator bool();
     return result;
 }
 
 SocketClient &SocketClient::setIp(const std::string &ip)
 {
-    m_ip = ip;
+    strcpy(this->m_ip, ip.c_str());
     return *this;
 }
 

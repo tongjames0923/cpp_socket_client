@@ -5,7 +5,6 @@
 #include <cstring>
 #include <iostream>
 
-//#define Debug
 
 using namespace std;
 
@@ -49,7 +48,7 @@ void sendAction()
         if (!isConnected)
         {
             cout << "fail to connect..." << endl;
-            consoleProgress::pushProgress(progressLen);
+            consoleProgress::abort();
             return;
         }
         cout << "connected..." << endl;
@@ -104,7 +103,7 @@ int main(int args, char *argc[])
 
     try
     {
-#ifndef Debug
+#if DEBUGMODE==CONFIG_MODE_RELEASE
         if (args == 3)
         {
             filePath = string(argc[2]);

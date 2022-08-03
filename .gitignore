@@ -5,3 +5,6 @@
 out
 /.vs
 /.idea
+/rellib
+/relruntime
+/relebuild
