@@ -10,6 +10,13 @@ using namespace std;
 
 namespace consoleProgress
 {
+
+
+#define LOCKIT lock_guard<mutex> g1(m);
+#define LOCK_INTIME(code)         m.lock(); \
+code \
+    m.unlock();
+
     mutex m;
     float prog;
     const int status_runable = 1, status_finish = 2, status_abort = 0;
@@ -19,10 +26,6 @@ namespace consoleProgress
     deque<float> q_prog;
     int status = status_runable;
     bool started = false;
-#define LOCKIT lock_guard<mutex> g1(m);
-#define LOCK_INTIME(code)         m.lock(); \
-code \
-    m.unlock();
 
 
     void output(float len,float prg,char done,char undone)
