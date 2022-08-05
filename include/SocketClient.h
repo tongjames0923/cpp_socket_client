@@ -2,8 +2,8 @@
 // Created by tbs on 2022/8/4.
 //
 
-#ifndef SOCKET_CLIENT_SOCKETCLIENT_H_IN
-#define SOCKET_CLIENT_SOCKETCLIENT_H_IN
+#ifndef SOCKET_CLIENT_SOCKETCLIENT_H
+#define SOCKET_CLIENT_SOCKETCLIENT_H
 #pragma once
 
 #include "FileInfo.h"
@@ -12,16 +12,14 @@
 #include <thread>
 #include <chrono>
 #include <deque>
+#include "config.h"
 
 namespace asio
 {
     using namespace boost::asio;
     using boost::system::error_code;
 }
-#define DEBUGMODE 1
-#define VERSION 1.02
-#define CONFIG_MODE_DEBUG -1
-#define CONFIG_MODE_RELEASE 1
+
 
 #if BOOST_VERSION >= 107000
 #define GET_IO_SERVICE(s) \
@@ -113,4 +111,4 @@ public:
 
 
 
-#endif //SOCKET_CLIENT_SOCKETCLIENT_H_IN
+#endif //SOCKET_CLIENT_SOCKETCLIENT_H

@@ -103,7 +103,8 @@ int main(int args, char *argc[])
 
     try
     {
-#if DEBUGMODE==CONFIG_MODE_RELEASE
+        printf("version:%s\n",VERSION);
+#ifdef RELEASE_MODE
         if (args == 3)
         {
             filePath = string(argc[2]);
