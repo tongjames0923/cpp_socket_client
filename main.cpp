@@ -1,9 +1,8 @@
-#include "FileInfo.h"
-#include "SocketClient.h"
 #include "progress.h"
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include "LocalTranslator.h"
 
 
 using namespace std;
@@ -12,6 +11,7 @@ const size_t bufferLen = 64 * KB;
 const size_t progressLen = 25;
 char buffer[bufferLen];
 SocketClient *sender;
+
 
 size_t makeHead(const FileInfo &info)
 {
@@ -125,22 +125,24 @@ int main(int args, char *argc[])
         }
 
 #else
-        SocketClient sr("127.0.0.1", 1997);
-        sender = &sr;
+//        SocketClient sr("127.0.0.1", 1997);
+//        sender = &sr;
 #endif // !Debug
 
-        cout << "init..." << endl;
-        consoleProgress::setLen(progressLen);
-        clock_t cost_time = clock();
-        consoleProgress::progress(sendAction);
-        cost_time = clock() - cost_time;
-        std::cout << "cost time: " << cost_time / (double) CLOCKS_PER_SEC << " s ";
-        if (isok)
-        {
-            double speed = fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
-                           cost_time;
-            cout << "Speed:" << speed << " MB/s" << endl;
-        }
+        LocalTranslator translator(filePath.c_str(),"127.0.0.1",1997,32);
+        translator.runIt();
+//        cout << "init..." << endl;
+//        consoleProgress::setLen(progressLen);
+//        clock_t cost_time = clock();
+//        consoleProgress::progress(sendAction);
+//        cost_time = clock() - cost_time;
+//        std::cout << "cost time: " << cost_time / (double) CLOCKS_PER_SEC << " s ";
+//        if (isok)
+//        {
+//            double speed = fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
+//                           cost_time;
+//            cout << "Speed:" << speed << " MB/s" << endl;
+//        }
     }
 
     catch (std::exception &err)

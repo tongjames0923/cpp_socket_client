@@ -53,3 +53,4 @@ FileInfo::FileInfo(const string &path)
     this->info.filename_size = path.length() + 1;
     this->info.filesize = fileSize();
 }
+

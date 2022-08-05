@@ -51,6 +51,8 @@ public:
      */
     explicit FileInfo(const std::string& path);
 
+
+
     /**
      *
      * @return 返回文件尺寸

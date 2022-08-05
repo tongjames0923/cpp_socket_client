@@ -1,7 +1,7 @@
 #include "SocketClient.h"
 #include <boost/bind/bind.hpp>
 #include <chrono>
-
+#include <iostream>
 using namespace std;
 using namespace boost::placeholders;
 
@@ -16,6 +16,7 @@ asio::io_service &getContext()
 
 SocketClient::~SocketClient()
 {
+
     closeSocket();
 }
 
@@ -79,7 +80,6 @@ size_t SocketClient::send(char *buffer, size_t size)
     if (m_socket.is_open())
     {
         return m_socket.send(asio::buffer(buffer, size));
-
     }
     return -1;
 }
@@ -99,6 +99,7 @@ void SocketClient::closeSocket()
 {
     if (m_socket.is_open())
     {
+        m_socket.shutdown(TCP::socket::shutdown_both);
         m_socket.close();
     }
 }

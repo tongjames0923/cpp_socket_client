@@ -62,7 +62,10 @@ public:
         setData(d, bs / (sizeof(D)));
         setBufferSize(bs);
     }
-
+    char* getBuffer()
+    {
+        return this->buffer.get();
+    }
     size_t getBufferSize() const
     {
         return bufferSize;
@@ -159,14 +162,12 @@ class LimitedQueue
 {
 public:
     using pack = PackData<D>;
-    using packHandler = function<bool(pack *)>;
+
+    static constexpr  unsigned MODE_ON_PUSH_POP=1,MODE_ON_HANDLE_POP=2;
+
+    using packHandler = function<bool(pack *,unsigned mode)>;
 
     LimitedQueue() = default;
-
-    explicit LimitedQueue(packHandler fun) : handler(fun)
-    {
-
-    }
 
     const packHandler &getHandler() const
     {
@@ -190,8 +191,7 @@ public:
                 setHandler(h);
             packHandler ph = getHandler();
             pack &pk = list.front();
-            ph(&pk);
-            OnPopWhenHandle(&pk);
+            ph(&pk,MODE_ON_HANDLE_POP);
             list.pop_front();
         }
 
@@ -209,11 +209,10 @@ public:
         while (ph != nullptr && !list.empty())
         {
             pack &pk = list.front();
-            ph(&pk);
-            OnPopWhenHandle(&pk);
+            ph(&pk,MODE_ON_HANDLE_POP);
             list.pop_front();
         }
-        done();
+       //done();
     }
 
     size_t getQueueSize()
@@ -244,13 +243,13 @@ public:
             beg++;
         }
         auto iter = list.begin();
-        while (handler != nullptr && iter < list.end())
+        while (is_ready()&&handler != nullptr && iter < list.end())
         {
             pack &pk = *(iter++);
             if (LimitOnPush(&pk))
                 break;
 
-            bool oktoD = handler(&pk);
+            bool oktoD = handler(&pk,MODE_ON_PUSH_POP);
             if (oktoD)
             {
                 OnPopWhenPush(&pk);
@@ -267,20 +266,29 @@ public:
         return rs;
     }
 
-    bool is_ready()
+     bool is_ready()
     {
         return m_ready;
     }
 
-    void ready()
+     void ready()
     {
-        m_ready = true;
+        if(OnReady())
+        {
+            m_ready = true;
+        }
+
     }
 
     void done()
     {
-        m_ready = false;
-        list.clear();
+        if(OnDone())
+        {
+            m_ready = false;
+
+            list.clear();
+        }
+
     }
 
 private:
@@ -288,6 +296,14 @@ private:
     bool m_ready = false;
     packHandler handler = nullptr;
 protected:
+    virtual bool OnReady()
+    {
+        return true;
+    }
+    virtual bool OnDone()
+    {
+        return true;
+    }
     virtual bool Ok_To_Push(pack *obj)
     {
         return true;
@@ -299,11 +315,6 @@ protected:
     }
 
     virtual void OnPopWhenPush(pack *will)
-    {
-
-    }
-
-    virtual void OnPopWhenHandle(pack *left)
     {
 
     }
@@ -319,11 +330,6 @@ public:
     PackQueue_Limited_Len() : LimitedQueue<D>(), len(0)
     {
     }
-
-    explicit PackQueue_Limited_Len(size_t z) : LimitedQueue<D>(), len(z)
-    {
-    }
-
     size_t getLen() const
     {
         return len;
@@ -331,7 +337,7 @@ public:
 
     void setLen(size_t len)
     {
-        if (!LimitedQueue<D>::is_ready())
+        if (LimitedQueue<D>::is_ready())
         {
             throw runtime_error("should set on not ready");
         }
@@ -347,7 +353,7 @@ protected:
 
     bool LimitOnPush(pack *pk) override
     {
-        return !Ok_To_Push(pk);
+        return Ok_To_Push(pk);
     }
 
 private:
