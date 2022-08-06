@@ -14,7 +14,7 @@
 
 using namespace std;
 
-template<typename D>
+template <typename D>
 class PackData
 {
 private:
@@ -22,6 +22,7 @@ private:
     unique_ptr<char[]> buffer = nullptr;
     size_t bufferSize = -1;
     size_t objSize = -1;
+
 protected:
     virtual size_t ObjectToBuffer(const D &source, size_t objlen, char *des, size_t bsize)
     {
@@ -30,7 +31,8 @@ protected:
         {
             memcpy(des, &source, ds);
             return ds;
-        } else
+        }
+        else
         {
             return bsize - ds;
         }
@@ -43,13 +45,12 @@ protected:
         {
             memcpy(des, bf, size);
             return ds;
-        } else
-            return ds-size;
-
+        }
+        else
+            return ds - size;
     }
 
 public:
-
     PackData() = default;
 
     explicit PackData(size_t bsize)
@@ -62,7 +63,7 @@ public:
         setData(d, bs / (sizeof(D)));
         setBufferSize(bs);
     }
-    char* getBuffer()
+    char *getBuffer()
     {
         return this->buffer.get();
     }
@@ -79,16 +80,19 @@ public:
             if (buffer != nullptr)
                 buffer.reset(nullptr);
             return -1;
-        } else if (bs == bufferSize)
+        }
+        else if (bs == bufferSize)
         {
             return 0;
-        } else if (buffer.get() == nullptr)
+        }
+        else if (buffer.get() == nullptr)
         {
             bufferSize = bs;
             char *tmp = new char[bs];
             buffer.reset(tmp);
             return bs;
-        } else
+        }
+        else
         {
             bufferSize = bs;
             char *tmp = new char[bs];
@@ -115,31 +119,28 @@ public:
 
     void setData(const D *d, size_t len = 1)
     {
-        if(len!=getObjectLen())
+        if (len != getObjectLen())
         {
             setObjectLen(len);
         }
         std::memcpy(data.get(), d, sizeof(D) * len);
     }
 
-    D *pushBuffer(char* bf,size_t bfs,bool force= false)
+    D *pushBuffer(char *bf, size_t bfs, bool force = false)
     {
         size_t stz = getObjectLen() * sizeof(D);
-        size_t  ojl=getObjectLen();
-        if(stz<bfs)
+        size_t ojl = getObjectLen();
+        if (stz < bfs)
         {
-            if(force)
+            if (force)
             {
-                setObjectLen(bfs/ sizeof(D));
-
+                setObjectLen(bfs / sizeof(D));
             }
             else
                 throw runtime_error("too small buffer for objects");
-
         }
-         BufferToObject(getData(), ojl, bf, bfs);
+        BufferToObject(getData(), ojl, bf, bfs);
         return getData();
-
     }
 
     char *pullData(const D &d, size_t len = 1)
@@ -156,16 +157,15 @@ public:
     }
 };
 
-
-template<typename D>
+template <typename D>
 class LimitedQueue
 {
 public:
     using pack = PackData<D>;
 
-    static constexpr  unsigned MODE_ON_PUSH_POP=1,MODE_ON_HANDLE_POP=2;
+    static constexpr unsigned MODE_ON_PUSH_POP = 1, MODE_ON_HANDLE_POP = 2;
 
-    using packHandler = function<bool(pack *,unsigned mode)>;
+    using packHandler = function<bool(pack *, unsigned mode)>;
 
     LimitedQueue() = default;
 
@@ -191,10 +191,9 @@ public:
                 setHandler(h);
             packHandler ph = getHandler();
             pack &pk = list.front();
-            ph(&pk,MODE_ON_HANDLE_POP);
+            ph(&pk, MODE_ON_HANDLE_POP);
             list.pop_front();
         }
-
     }
 
     void handle(packHandler h = nullptr)
@@ -209,10 +208,10 @@ public:
         while (ph != nullptr && !list.empty())
         {
             pack &pk = list.front();
-            ph(&pk,MODE_ON_HANDLE_POP);
+            ph(&pk, MODE_ON_HANDLE_POP);
             list.pop_front();
         }
-       //done();
+        // done();
     }
 
     size_t getQueueSize()
@@ -243,13 +242,13 @@ public:
             beg++;
         }
         auto iter = list.begin();
-        while (is_ready()&&handler != nullptr && iter < list.end())
+        while (is_ready() && handler != nullptr && iter < list.end())
         {
             pack &pk = *(iter++);
-            if (LimitOnPush(&pk))
+            if (!LimitOnPush(&pk))
                 break;
 
-            bool oktoD = handler(&pk,MODE_ON_PUSH_POP);
+            bool oktoD = handler(&pk, MODE_ON_PUSH_POP);
             if (oktoD)
             {
                 OnPopWhenPush(&pk);
@@ -257,7 +256,6 @@ public:
             }
         }
         return ts;
-
     }
 
     bool pushIn(pack &&pkg, bool force = false)
@@ -266,35 +264,34 @@ public:
         return rs;
     }
 
-     bool is_ready()
+    bool is_ready()
     {
         return m_ready;
     }
 
-     void ready()
+    void ready()
     {
-        if(OnReady())
+        if (OnReady())
         {
             m_ready = true;
         }
-
     }
 
     void done()
     {
-        if(OnDone())
+        if (OnDone())
         {
             m_ready = false;
 
             list.clear();
         }
-
     }
 
 private:
     deque<pack> list;
     bool m_ready = false;
     packHandler handler = nullptr;
+
 protected:
     virtual bool OnReady()
     {
@@ -316,12 +313,10 @@ protected:
 
     virtual void OnPopWhenPush(pack *will)
     {
-
     }
 };
 
-
-template<typename D>
+template <typename D>
 class PackQueue_Limited_Len : public virtual LimitedQueue<D>
 {
 public:
@@ -358,9 +353,6 @@ protected:
 
 private:
     atomic_ulong len;
-
-
 };
 
-
-#endif //TESTER_NETPACK_H
+#endif // TESTER_NETPACK_H

@@ -93,8 +93,44 @@ void LocalTranslator::runIt()
         pack pk(pack_Len);
         pk.setData(b_tmp, per);
         this->pushIn(std::move(pk), true);
+        if(onFileRead!= nullptr)
+        {
+            onFileRead(pks,per);
+        }
         return true;
     });
     handle(nullptr);
-    cout<<"sent..."<<hassent<<endl;
 }
+
+bool LocalTranslator::readyForConnect()
+{
+    ready();
+    return is_ready();
+}
+
+size_t LocalTranslator::getTotalFileSize() const
+{
+
+    return fi.getFileSize();
+}
+
+std::string LocalTranslator::getFileName()const
+{
+    return fi.getFileName();
+}
+
+void LocalTranslator::setOnSentFail(callback_data_sent cb)
+{
+    this->onSentFail=cb;
+}
+
+void LocalTranslator::setOnSentSuccess(callback_data_sent cb)
+{
+    onSentSuccess=cb;
+}
+
+void LocalTranslator::setOnFileRead(callback_file_read cb)
+{
+    onFileRead=cb;
+}
+

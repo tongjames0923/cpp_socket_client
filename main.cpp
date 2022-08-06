@@ -1,4 +1,3 @@
-#include "progress.h"
 #include <cstdio>
 #include <cstring>
 #include <iostream>
@@ -7,103 +6,23 @@
 
 using namespace std;
 
-const size_t bufferLen = 64 * KB;
-const size_t progressLen = 25;
-char buffer[bufferLen];
-SocketClient *sender;
-
-
-size_t makeHead(const FileInfo &info)
-{
-    size_t filename_size = info.getFileName().length() + 1;
-    size_t file_info_size = sizeof(File_info);
-    size_t total_size = file_info_size + filename_size;
-    if (total_size > bufferLen)
-    {
-        throw std::string("File name is too long");
-    }
-    File_info ff;
-    ff.filesize = info.getFileSize();
-    ff.filename_size = filename_size;
-
-    memcpy(buffer, &ff, file_info_size);
-    memcpy(buffer + file_info_size, info.getFileName().c_str(),
-           filename_size);
-    return total_size;
-}
+static const size_t progressLen = 25;
+static const size_t Q_LEN = 32;
 
 string filePath = "/Users/abstergo/Desktop/imguisample.zip";
 size_t fileTotal;
-bool isok = false;
+unsigned port = 1997;
+string ip = "127.0.0.1";
 
-void sendAction()
-{
-    try
-    {
-        cout << "reading..." << endl;
-        FileInfo file(filePath);
-        fileTotal = file.getFileSize();
-        cout << "connect..." << endl;
-        bool isConnected = sender->connect();
-        if (!isConnected)
-        {
-            cout << "fail to connect..." << endl;
-            consoleProgress::abort();
-            return;
-        }
-        cout << "connected..." << endl;
-        isok = false;
-        size_t callback = 0;
-        size_t firstpack = makeHead(file);
-        cout << "head sending..." << endl;
-        callback = sender->send(buffer, firstpack);
-        cout << "head sent..." << endl;
-        char repbuffer[128];
-        size_t rep = sender->receive(repbuffer, 128);
-        int repCode = *(int *) repbuffer;
-        if (callback == firstpack && repCode == 99)
-        {
-            cout << "file send..." << endl;
-            isok = file.readFile(buffer, bufferLen,
-                                 ([](int pack, size_t per, size_t total) -> bool
-                                 {
-                                     size_t sentSize = sender->send(buffer, per);
-                                     if (sentSize != per)
-                                     {
-                                         return false;
-                                     }
-                                     float pec = (float) total / fileTotal * progressLen;
-                                     consoleProgress::pushProgress(pec);
-                                     return true;
-                                 }));
-            if (isok)
-            {
-                consoleProgress::finish();
-            } else
-            {
-                cout << "pack sent fail..." << endl;
-                consoleProgress::abort();
-            }
-        } else
-        {
-            cout << "head sent fail..." << endl;
-            consoleProgress::abort();
-        }
-
-    }
-    catch (const std::exception &e)
-    {
-        std::cout << e.what() << '\n';
-        consoleProgress::abort();
-    }
-}
 
 int main(int args, char *argc[])
 {
 
     try
     {
-        printf("version:%s\n",VERSION);
+        printf("version:%s\n", VERSION);
+        cout << "init..." << endl;
+        clock_t cost_time = clock();
 #ifdef RELEASE_MODE
         if (args == 3)
         {
@@ -128,25 +47,51 @@ int main(int args, char *argc[])
 //        SocketClient sr("127.0.0.1", 1997);
 //        sender = &sr;
 #endif // !Debug
+        LocalTranslator translator(filePath.c_str(), ip.c_str(), port, Q_LEN);
+        fileTotal = translator.getTotalFileSize();
+        size_t hasSent = 0;
+        translator.setOnSentFail([](PackData<char> *pk, size_t should, size_t sent) -> bool
+                                 {
+                                     cout << "send function error" << endl;
 
-        LocalTranslator translator(filePath.c_str(),"127.0.0.1",1997,32);
-        translator.runIt();
-//        cout << "init..." << endl;
-//        consoleProgress::setLen(progressLen);
-//        clock_t cost_time = clock();
-//        consoleProgress::progress(sendAction);
-//        cost_time = clock() - cost_time;
-//        std::cout << "cost time: " << cost_time / (double) CLOCKS_PER_SEC << " s ";
-//        if (isok)
-//        {
-//            double speed = fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
-//                           cost_time;
-//            cout << "Speed:" << speed << " MB/s" << endl;
-//        }
+                                     //consoleProgress::abort();
+                                     return false;
+                                 });
+        translator.setOnSentSuccess([&hasSent](PackData<char> *pk, size_t should, size_t sent) -> bool
+                                    {
+                                        hasSent += sent;
+                                        float pec = (float) hasSent / fileTotal * 100;
+                                        printf("\r%.2f", pec);
+                                        cout << "%";
+                                        //consoleProgress::pushProgress(pec);
+                                        return true;
+                                    });
+        cout << "connect..." << endl;
+        bool connected = translator.readyForConnect();
+        if (connected)
+        {
+            cout << "file:" << filePath << "file_size:" << fileTotal / 1024.0 << "kb,target IP:" << ip << ":"
+                 << port << endl;
+            //printf("file:%s,file_size:%zu,target_ip:%s,target_port:%d",filePath.c_str(),translator.getTotalFileSize(),ip.c_str(),port);
+            translator.runIt();
+            //consoleProgress::finish();
+        } else
+        {
+            //consoleProgress::abort();
+            cout << "fail to connect" << endl;
+            return 0;
+        }
+        cost_time = clock() - cost_time;
+        std::cout << "\ncost time: " << cost_time / (double) CLOCKS_PER_SEC << " s ";
+        double speed = fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
+                       cost_time;
+        cout << "Speed:" << speed << " MB/s" << endl;
+        return 1;
+
     }
-
     catch (std::exception &err)
     {
         std::cerr << err.what() << "\n";
+        return 0;
     }
 }

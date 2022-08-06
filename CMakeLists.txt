@@ -22,8 +22,6 @@ endif ()
 
 include_directories(BEFORE ${boost} ${PROJECT_SOURCE_DIR}/include)
 file(GLOB_RECURSE SOURCE "source/*.cpp" "source/*.c" "include/*.h" )
-add_subdirectory(progress)
+#add_subdirectory(progress)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/clientLib)
 add_executable(socket_client  ${SOURCE} main.cpp source/LocalTranslator.cpp )
-
-target_link_libraries(socket_client  PUBLIC progress)
