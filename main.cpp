@@ -21,13 +21,32 @@ cJSON* root;
 string config_NICKNAME = "nickname";
 string config_NICKNAME_NICK = "nick";
 string config_NICKNAME_IP = "ip";
+
+void outPutConfig()
+{
+    cJSON * root=cJSON_CreateObject();
+    cJSON * nick=cJSON_AddArrayToObject(root,config_NICKNAME.c_str());
+    for(auto i :nickNames)
+    {
+       cJSON * obj=cJSON_CreateObject();
+        cJSON_AddStringToObject(obj,config_NICKNAME_NICK.c_str(), i.first.c_str());
+        cJSON_AddStringToObject(obj,config_NICKNAME_IP.c_str(),i.second.c_str());
+        cJSON_AddItemToArray(nick,obj);
+    }
+    ofstream out(config_file.c_str());
+    out<<cJSON_Print(root);
+    out.close();
+    cJSON_free(root);
+}
+
 void readConfig()
 {
     try
     {
         char bf[512];
         ifstream s(config_file, ios_base::in);
-
+        if(!s.is_open())
+            return;
         stringstream str;
         while (!s.eof())
         {
@@ -77,8 +96,27 @@ int main(int args, char *argc[])
                 ip = nickNames[ip];
 
 
-        } else if (args == 4)
+        }
+        else if(args==2)
         {
+            if(strcmp("-nick",argc[1])==0)
+            {
+                for(auto i : nickNames)
+                {
+                    printf("nickName:%s\tip:%s\n",i.first.c_str(),i.second.c_str());
+                }
+                return 0;
+            }
+        }
+        else if (args == 4)
+        {
+            if(strcmp("-config",argc[1])==0)
+            {
+                nickNames[argc[2]]=argc[3];
+                outPutConfig();
+                return 0;
+            }
+
             ip = string(argc[1]);
             if (nickNames.count(ip) > 0)
                 ip = nickNames[ip];
@@ -87,8 +125,9 @@ int main(int args, char *argc[])
         } else
         {
             cout << "usage socket_client <target_ip/nickName> <file_Location> or \n" <<
-                 "usage socket_client <target_ip/nickName> <port> <file_Location> or \n"
-
+                 "usage socket_client <target_ip/nickName> <port> <file_Location> or \n"<<
+                 "usage socket_client -config <nickName> <ip>:《to set your nickName》 or\n"<<
+                 "usage socket_client -nick :《to show your all nickNames》"
                  << endl;
             return 0;
         }
@@ -100,7 +139,7 @@ int main(int args, char *argc[])
                                  {
                                      cout << "send function error" << endl;
 
-     
+
                                      return false;
                                  });
         translator.setOnSentSuccess([&hasSent](PackData<char> *pk, size_t should, size_t sent) -> bool
