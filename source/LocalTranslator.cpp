@@ -5,7 +5,7 @@
 #include "LocalTranslator.h"
 #include <iostream>
 
-const size_t pack_Len = 32 * KB;
+const size_t pack_Len = 64 * KB;
 size_t hassent=0;
 
 LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port,

@@ -244,7 +244,7 @@ public:
         auto iter = list.begin();
         while (is_ready() && handler != nullptr && iter < list.end())
         {
-            pack &pk = *(iter++);
+            pack &pk = *(iter);
             if (!LimitOnPush(&pk))
                 break;
 
@@ -254,6 +254,7 @@ public:
                 OnPopWhenPush(&pk);
                 list.pop_front();
             }
+            iter = list.begin();
         }
         return ts;
     }
