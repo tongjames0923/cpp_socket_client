@@ -228,8 +228,8 @@ void forRun(Launcher *owner)
         if (info.length == 2)
         {
             char target[256], _ip[256];
-            owner->getData(owner->getDefaultArgName(key, 0), target, 256);
-            owner->getData(owner->getDefaultArgName(key, 1), _ip, 256);
+            owner->getData(owner->getDefaultArgName(key, 1), target, 256);
+            owner->getData(owner->getDefaultArgName(key, 0), _ip, 256);
 
             filePath = string(target);
             ip = string(ip);
@@ -241,9 +241,9 @@ void forRun(Launcher *owner)
         else if(info.length==3)
         {
             char target[256], _ip[256],_port[256];
-            owner->getData(owner->getDefaultArgName(key, 0), target, 256);
-            owner->getData(owner->getDefaultArgName(key, 1), _ip, 256);
-            owner->getData(owner->getDefaultArgName(key, 2), _port, 256);
+            owner->getData(owner->getDefaultArgName(key, 2), target, 256);
+            owner->getData(owner->getDefaultArgName(key, 0), _ip, 256);
+            owner->getData(owner->getDefaultArgName(key, 1), _port, 256);
             filePath = string(target);
             ip = string(ip);
             if (nickNames.count(ip) > 0)
@@ -259,5 +259,10 @@ void forRun(Launcher *owner)
 
 void forH(Launcher *owner)
 {
-
+    //"-config_nick", "-nick"
+    cout<<"usage:socket_client run <ip|nickname> <filePath>  [send file to target with port 1997]\n";
+    cout<<"usage:socket_client run <ip|nickname> <port> <filePath> [send file to target"
+          "with specified port]\n";
+    cout<<"usage:socket_client -nick [to show all your nick names]"<<endl;
+    cout<<"usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
 }

@@ -39,6 +39,7 @@ private:
     TCP::socket m_socket;
     char m_ip[256];
     unsigned int m_port;
+    bool connected=false;
 
 public:
     ~SocketClient();

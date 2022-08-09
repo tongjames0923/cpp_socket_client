@@ -107,8 +107,12 @@ static void catchArg(std::queue<const std::string> q,key_function isKey,std::vec
         }
         ++i;
     }
-    info.length=i-info.start;
-    des.push_back(info);
+    if(info.start>=0)
+    {
+        info.length= i-info.start;
+        des.push_back(info);
+    }
+
 }
 
 #endif //SOCKET_CLIENT_LAUNCHER_H

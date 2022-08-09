@@ -46,16 +46,17 @@ bool SocketClient::connect(const std::string &ip,
                          const unsigned int &port)
 {
     closeSocket();
+    this->connected= false;
     auto endpoint = TCP::endpoint(
             asio::ip::address_v4::from_string(
                     ip.c_str()),
             port);
-    bool result = false;
+
     boost::system::error_code ec;
     m_socket.connect(endpoint,
                      ec);
-                     result=!ec.operator bool();
-    return result;
+    this->connected=!ec.operator bool();
+    return     this->connected;
 }
 
 SocketClient &SocketClient::setIp(const std::string &ip)
@@ -107,7 +108,7 @@ void SocketClient::closeSocket()
 {
     if (m_socket.is_open())
     {
-        
+        if(connected)
         m_socket.shutdown(TCP::socket::shutdown_both);
         m_socket.close();
     }
