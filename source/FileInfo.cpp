@@ -16,6 +16,7 @@ size_t FileInfo::fileSize()
 
 size_t FileInfo::getFileSize() const
 {
+    
     return info.filesize;
 }
 

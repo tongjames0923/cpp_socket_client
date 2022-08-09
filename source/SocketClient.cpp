@@ -5,12 +5,19 @@
 using namespace std;
 using namespace boost::placeholders;
 
+namespace asio
+{
+    using namespace boost::asio;
+    using boost::system::error_code;
+}
+
+
 
 asio::io_service io;
 
 asio::io_service &getContext()
 {
-
+    
     return io;
 }
 
@@ -53,6 +60,7 @@ bool SocketClient::connect(const std::string &ip,
 
 SocketClient &SocketClient::setIp(const std::string &ip)
 {
+    
     strcpy(m_ip,ip.c_str());
     //m_ip = ip;
     return *this;
@@ -99,6 +107,7 @@ void SocketClient::closeSocket()
 {
     if (m_socket.is_open())
     {
+        
         m_socket.shutdown(TCP::socket::shutdown_both);
         m_socket.close();
     }

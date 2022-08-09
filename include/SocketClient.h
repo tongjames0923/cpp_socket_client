@@ -4,7 +4,6 @@
 
 #ifndef SOCKET_CLIENT_SOCKETCLIENT_H
 #define SOCKET_CLIENT_SOCKETCLIENT_H
-#pragma once
 
 #include "FileInfo.h"
 #include <boost/asio.hpp>
@@ -13,12 +12,6 @@
 #include <chrono>
 #include <deque>
 #include "config.h"
-
-namespace asio
-{
-    using namespace boost::asio;
-    using boost::system::error_code;
-}
 
 
 #if BOOST_VERSION >= 107000
@@ -32,9 +25,9 @@ namespace asio
  * 获取asio的运行时
  * @return
  */
-asio::io_service &getContext();
+boost::asio::io_service &getContext();
 
-typedef asio::ip::tcp TCP;
+typedef boost::asio::ip::tcp TCP;
 
 
 /**

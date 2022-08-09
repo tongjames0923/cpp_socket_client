@@ -18,8 +18,8 @@ template <typename D>
 class PackData
 {
 private:
-    unique_ptr<D[]> data = nullptr;
-    unique_ptr<char[]> buffer = nullptr;
+    unique_ptr<D,default_delete<D[]>> data = nullptr;
+    unique_ptr<char,default_delete<char[]>> buffer;
     size_t bufferSize = -1;
     size_t objSize = -1;
 
@@ -38,6 +38,7 @@ protected:
         }
     }
 
+
     virtual size_t BufferToObject(D *des, size_t objlen, char *bf, size_t size)
     {
         size_t ds = sizeof(D) * objlen;
@@ -51,7 +52,9 @@ protected:
     }
 
 public:
-    PackData() = default;
+    PackData()
+    {
+    }
 
     explicit PackData(size_t bsize)
     {
@@ -98,6 +101,7 @@ public:
             char *tmp = new char[bs];
             size_t cplen = min(bs, old);
             memcpy(tmp, buffer.get(), cplen);
+            buffer.reset(tmp);
             return bufferSize - old;
         }
     }
@@ -123,7 +127,7 @@ public:
         {
             setObjectLen(len);
         }
-        std::memcpy(data.get(), d, sizeof(D) * len);
+        memcpy(data.get(), d, sizeof(D) * len);
     }
 
     D *pushBuffer(char *bf, size_t bfs, bool force = false)
@@ -173,11 +177,11 @@ public:
     {
         return handler;
     }
-
     void setHandler(const packHandler &fun)
     {
         LimitedQueue::handler = fun;
     }
+
 
     void handle_once(packHandler h = nullptr)
     {
