@@ -3,6 +3,7 @@
 
 #include <string>
 #include <functional>
+#include "Pointerable.h"
 
 
 class impl_fileinfo;
@@ -39,10 +40,8 @@ using fileReadCallback= std::function<bool(int packindex, size_t perRead, size_t
 /**
  * 文件信息读取类
  */
-class FileInfo
+class FileInfo: private virtual Pointerable<impl_fileinfo>,None_Copyable
 {
-private:
-    std::shared_ptr<impl_fileinfo> m_impl;
 public:
     /**
      *

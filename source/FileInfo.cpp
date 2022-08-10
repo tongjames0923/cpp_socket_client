@@ -4,21 +4,21 @@
 size_t FileInfo::getFileSize() const
 {
     
-    return m_impl->getFileSize();
+    return cMyImpl().getFileSize();
 }
 
 std::string FileInfo::getFileName() const
 {
-    return m_impl->getFileName();
+    return cMyImpl().getFileName();
 }
 
 bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callback)
 {
-    return m_impl->readFile(buffer, bufferSize, callback);
+    return myImpl().readFile(buffer, bufferSize, callback);
 }
 
-FileInfo::FileInfo(const string &path):m_impl(new impl_fileinfo())
+FileInfo::FileInfo(const string &path)
 {
-    m_impl->init(path);
+    myImpl().init(path);
 }
 
