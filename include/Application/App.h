@@ -10,9 +10,6 @@ void makeLauncher(Launcher** launcher);
 namespace Features
 {
 
-
-
-
     void forH(Launcher *owner);
 
     void forConfigNick(Launcher *owner);

@@ -2,10 +2,13 @@
 #define _FILE_INFO_H_
 
 #include <string>
-#include <fstream>
 #include <functional>
 
-const long KB = 1024, MB = KB * 1024;
+
+class impl_fileinfo;
+
+
+static constexpr unsigned long KB = 1024, MB = KB * 1024;
 
 
 struct File_info
@@ -31,7 +34,7 @@ struct File_info
  * @param size_t =总共读取字节数
  * @return bool 读取是否继续
  */
-using fileReadCallback= std::function<bool(int, size_t, size_t)> ;
+using fileReadCallback= std::function<bool(int packindex, size_t perRead, size_t totalread)> ;
 
 /**
  * 文件信息读取类
@@ -39,11 +42,7 @@ using fileReadCallback= std::function<bool(int, size_t, size_t)> ;
 class FileInfo
 {
 private:
-    std::ifstream file;
-    File_info info;
-    std::string filePath;
-    size_t fileSize();
-
+    std::shared_ptr<impl_fileinfo> m_impl;
 public:
     /**
      *

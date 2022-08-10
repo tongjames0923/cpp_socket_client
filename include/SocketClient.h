@@ -5,46 +5,18 @@
 #ifndef SOCKET_CLIENT_SOCKETCLIENT_H
 #define SOCKET_CLIENT_SOCKETCLIENT_H
 
-#include "FileInfo.h"
-#include <boost/asio.hpp>
-#include <mutex>
-#include <thread>
-#include <chrono>
-#include <deque>
-#include "Application/config.h"
-
-
-#if BOOST_VERSION >= 107000
-#define GET_IO_SERVICE(s) \
-  ((boost::asio::io_context &)(s).get_executor().context())
-#else
-#define GET_IO_SERVICE(s) ((s).get_io_service())
-#endif
-
-/**
- * 获取asio的运行时
- * @return
- */
-boost::asio::io_service &getContext();
-
-typedef boost::asio::ip::tcp TCP;
-
-
+#include <string>
+#include "Pointerable.h"
+class impl_SocketClient;
 /**
  * 端口客户端
  */
-class SocketClient
+class SocketClient:public virtual Pointerable<impl_SocketClient>,None_Copyable
 {
-private:
-    TCP::socket m_socket;
-    char m_ip[256];
-    unsigned int m_port;
-    bool connected=false;
-
 public:
     ~SocketClient();
 
-    SocketClient();
+    SocketClient()= default;
 
     /**
      *

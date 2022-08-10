@@ -1,57 +1,24 @@
 #include "FileInfo.h"
-#include <cstdio>
-
-using namespace std;
-
-size_t FileInfo::fileSize()
-{
-    streampos cur = file.tellg();
-    file.seekg(0, ios_base::end);
-    streampos e = file.tellg();
-    size_t r = e;
-    file.seekg(cur, ios_base::beg);
-    return e;
-}
-
+#include "Backend/imp_FileInfo.h"
 
 size_t FileInfo::getFileSize() const
 {
     
-    return info.filesize;
+    return m_impl->getFileSize();
 }
 
 std::string FileInfo::getFileName() const
 {
-    return filePath;
+    return m_impl->getFileName();
 }
 
 bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callback)
 {
-    streampos cur = file.tellg();
-    file.seekg(0, ios_base::beg);
-    size_t hasread = 0, singleRead = 0, pack = 0;
-    bool iscon = true;
-    while (!file.eof() && iscon)
-    {
-        file.read(buffer, bufferSize);
-        singleRead = file.gcount();
-        hasread += singleRead;
-        iscon = callback(++pack, singleRead, hasread);
-    }
-    bool suc = hasread == getFileSize();
-    file.seekg(cur, ios_base::beg);
-    return suc&&iscon;
+    return m_impl->readFile(buffer, bufferSize, callback);
 }
 
-FileInfo::FileInfo(const string &path)
+FileInfo::FileInfo(const string &path):m_impl(new impl_fileinfo())
 {
-    file.open(path, ios_base::binary);
-    if (!file.is_open())
-    {
-        throw runtime_error("wrong file Path") ;
-    }
-    this->filePath = path;
-    this->info.filename_size = path.length() + 1;
-    this->info.filesize = fileSize();
+    m_impl->init(path);
 }
 

@@ -26,6 +26,7 @@ int main(int args, char *argc[])
         makeLauncher(&launcher);
         launcher->Start(args, argc);
 #endif // !Debug
+        
         return 1;
     }
     catch (std::exception &err)

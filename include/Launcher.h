@@ -70,7 +70,10 @@ private:
 };
 
 
-using key_function = std::function<bool(const char*,size_t)>;
+/**
+ * 判断是否为arg传入参数关键字
+ */
+using key_function = std::function<bool(const char* argtext,size_t len)>;
 static std::queue<const std::string> makeArgQueue(int argc, char **argv)
 {
     std::queue<const std::string> q;
@@ -116,7 +119,6 @@ static void catchArg(std::queue<const std::string> q,key_function isKey,std::vec
         info.length= i-info.start;
         des.push_back(info);
     }
-
 }
 
 #endif //SOCKET_CLIENT_LAUNCHER_H
