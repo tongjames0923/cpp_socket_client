@@ -8,6 +8,7 @@
 #include "NetPack.h"
 #include "FileInfo.h"
 #include "SocketClient.h"
+#include "Component.h"
 
 using namespace std;
 
@@ -34,7 +35,9 @@ public:
     std::string getFileName() const;
 
     void setOnSentFail(callback_data_sent cb);
+
     void setOnSentSuccess(callback_data_sent cb);
+
     void setOnFileRead(callback_file_read cb);
 
 

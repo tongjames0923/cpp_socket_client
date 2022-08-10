@@ -23,7 +23,7 @@ void Launcher::Start(int argc, char **argv)
         {
             for(int i=0;i<item.length;++i)
             {
-                putData(getDefaultArgName(item.name,i),argv[i], strlen(argv[i]));
+                putData(getDefaultArgName(item.name,i),argv[i+item.start], strlen(argv[i+item.start]));
             }
         }
     }

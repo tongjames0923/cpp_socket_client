@@ -243,7 +243,7 @@ public:
                 list.push_back(std::move(*beg));
                 ts++;
             }
-            beg++;
+            //beg++;
         }
         auto iter = list.begin();
         while (is_ready() && handler != nullptr && iter < list.end())
@@ -265,7 +265,7 @@ public:
 
     bool pushIn(pack &&pkg, bool force = false)
     {
-        bool rs = PushAll(&pkg, 1, force);
+        bool rs = PushAll(&pkg, 1, force)==1;
         return rs;
     }
 
@@ -321,43 +321,6 @@ protected:
     }
 };
 
-template <typename D>
-class PackQueue_Limited_Len : public virtual LimitedQueue<D>
-{
-public:
-    using pack = PackData<D>;
 
-    PackQueue_Limited_Len() : LimitedQueue<D>(), len(0)
-    {
-    }
-    size_t getLen() const
-    {
-        return len;
-    }
-
-    void setLen(size_t len)
-    {
-        if (LimitedQueue<D>::is_ready())
-        {
-            throw runtime_error("should set on not ready");
-        }
-        PackQueue_Limited_Len::len = len;
-    }
-
-protected:
-    bool Ok_To_Push(pack *obj) override
-    {
-
-        return LimitedQueue<D>::getQueueSize() < len;
-    }
-
-    bool LimitOnPush(pack *pk) override
-    {
-        return Ok_To_Push(pk);
-    }
-
-private:
-    atomic_ulong len;
-};
 
 #endif // TESTER_NETPACK_H

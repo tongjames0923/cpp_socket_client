@@ -55,6 +55,10 @@ protected:
     {
 
     }
+    virtual void cleanup()
+    {
+
+    }
     virtual bool autoPutdataFromArgs()
     {
         return true;

@@ -2,7 +2,7 @@
 // Created by tbs on 2022/8/5.
 //
 
-#include "LocalTranslator.h"
+#include "Application/LocalTranslator.h"
 #include <iostream>
 
 const size_t pack_Len = 64 * KB;
