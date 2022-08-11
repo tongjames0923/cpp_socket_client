@@ -14,7 +14,6 @@ class impl_SocketClient;
 class SocketClient:public virtual AutoAlivePointerable<impl_SocketClient>,None_Copyable
 {
 public:
-    ~SocketClient();
 
     SocketClient()= default;
 

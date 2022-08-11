@@ -287,7 +287,6 @@ public:
         if (OnDone())
         {
             m_ready = false;
-
             list.clear();
         }
     }

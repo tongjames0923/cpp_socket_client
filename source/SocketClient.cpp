@@ -6,10 +6,6 @@
 using namespace std;
 using namespace boost::placeholders;
 
-SocketClient::~SocketClient()
-{
-    myImpl().closeSocket();
-}
 
 SocketClient::SocketClient(const std::string &ip, const unsigned int &port)
 {

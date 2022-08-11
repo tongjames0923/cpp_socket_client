@@ -87,7 +87,7 @@ public:
     void setOnFileRead(callback_file_read cb);
 
 
-    void runIt();
+    size_t runIt();
 
 protected:
     bool OnReady() override;

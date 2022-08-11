@@ -218,7 +218,8 @@ namespace Features
         if (connected)
         {
             printf("file=%s\tfile_size=%.2f kb \t ip=%s:%d\n", filePath.c_str(), fileTotal / 1024.0, ip.c_str(), port);
-            translator.runIt();
+            float totalsent=translator.runIt()/1024.0;
+            cout<<"\nhas sent:"<<totalsent<<"kb"<<endl;
         } else
         {
 

@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.0.0)
 project(socket_client)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_STANDARD 11)
+
 if (WIN32)
     set(boost "C:\\Users\\Abstergo\\Downloads\\boost_1_79_0")
     add_definitions(-D _WIN32_WINNT=0x0501)
@@ -24,3 +25,5 @@ file(GLOB_RECURSE SOURCE "source/*.cpp" "source/*.c" "include/*.h" )
 #add_subdirectory(progress)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/clientLib)
 add_executable(socket_client  ${SOURCE} main.cpp)
+
+target_link_libraries(socket_client PUBLIC event)

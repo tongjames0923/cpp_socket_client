@@ -9,7 +9,7 @@
 class impl_fileinfo;
 
 
-static constexpr unsigned long KB = 1024, MB = KB * 1024;
+
 
 
 struct File_info

@@ -6,18 +6,24 @@
 #define SOCKET_CLIENT_IMP_SOCKETCLIENT_H
 
 #include "FileInfo.h"
-#include <boost/asio.hpp>
+
 #include <mutex>
 #include <thread>
-#include <chrono>
+
 #include <deque>
 #include "Application/config.h"
-#include <boost/bind/bind.hpp>
-#include <chrono>
 #include <iostream>
+#include "Application/config.h"
 
 using namespace std;
+//#define IMPL_ASIO
+
+#ifdef IMPL_ASIO
+#include <boost/asio.hpp>
+#include <chrono>
+#include <boost/bind/bind.hpp>
 using namespace boost::placeholders;
+
 
 namespace asio
 {
@@ -42,14 +48,42 @@ static asio::io_service &getContext()
 #endif
 
 typedef boost::asio::ip::tcp TCP;
-
+#else
+#include <event.h>
+#include <arpa/inet.h>
+#endif
 
 class impl_SocketClient
 {
 public:
+#ifdef IMPL_ASIO
     impl_SocketClient(): m_socket(getContext()),m_ip("127.0.0.1"),m_port(1997)
     {
     }
+#else
+impl_SocketClient():base(event_base_new())
+{
+}
+
+#endif
+    ~impl_SocketClient()
+    {
+        closeSocket();
+#ifndef IMPL_ASIO
+
+        if (base != NULL)
+        {
+            event_base_free(base);
+            base = nullptr;
+        }
+#else
+#endif
+    }
+
+
+
+
+
 
     void init(const std::string &ip, const unsigned int &port)
     {
@@ -62,10 +96,11 @@ public:
     }
 
     bool connect(const std::string &ip,
-                 const unsigned int &port)
+                 const unsigned int &port,bool remember = false)
     {
         closeSocket();
         this->connected = false;
+#ifdef IMPL_ASIO
         auto endpoint = TCP::endpoint(
                 asio::ip::address_v4::from_string(
                         ip.c_str()),
@@ -75,6 +110,29 @@ public:
         m_socket.connect(endpoint,
                          ec);
         this->connected = !ec.operator bool();
+#else
+        sockaddr_in sin;
+        sin.sin_family = AF_INET;
+        sin.sin_addr.s_addr = inet_addr(ip.c_str());
+        sin.sin_port = htons(port);
+        bev= bufferevent_socket_new(base, -1, BEV_OPT_CLOSE_ON_FREE);
+        if (bev==NULL)
+        {
+            return false;
+        }
+
+        //bufferevent_setcb(bev,conn_readcb,conn_writecb,conn_eventcb,this);
+        int flag = bufferevent_socket_connect(bev, (struct sockaddr*)&sin, sizeof(sin));
+        bufferevent_enable(bev, EV_READ | EV_WRITE);
+        bufferevent_set_max_single_read(bev,pack_Len);
+        bufferevent_set_max_single_write(bev,pack_Len);
+        connected =flag!=-1;
+        if (connected&&remember)
+        {
+            std::strcpy(m_ip,ip.c_str());
+            m_port=port;
+        }
+#endif
         return this->connected;
     }
 
@@ -105,36 +163,86 @@ public:
 
     size_t send(char *buffer, size_t size)
     {
+#ifdef IMPL_ASIO
         if (m_socket.is_open())
         {
             return m_socket.send(asio::buffer(buffer, size));
         }
+#else
+        if (connected)
+        {
+            int fg= bufferevent_write(bev,buffer,size);
+            auto ev= bufferevent_get_output(bev);
+            size_t left= evbuffer_get_length(ev);
+            while (left)
+            {
+                //cout<<"left:"<<left<<endl;
+                event_base_loop(base,EVLOOP_ONCE);
+                ev= bufferevent_get_output(bev);
+                left=evbuffer_get_length(ev);
+            }
+            return fg==0?size:0;
+        }
+#endif
+
         return -1;
     }
 
     size_t receive(char *buffer, size_t size)
     {
+
+#ifdef IMPL_ASIO
         if (m_socket.is_open())
         {
             return m_socket.receive(asio::buffer(buffer, size));
 
         }
+#else
+        if (connected)
+        {
+            int fg=0;
+            event_base_loop(base,EVLOOP_ONCE);
+            fg= bufferevent_read(bev,buffer,size);
+            //event_base_loop(base,EVLOOP_ONCE);
+            return fg;
+        }
+#endif
+
         return -1;
     }
 
 
     void closeSocket()
     {
-        if (m_socket.is_open())
+        if (connected)
+        {
+#ifdef IMPL_ASIO
+            if (m_socket.is_open())
         {
             if (connected)
                 m_socket.shutdown(TCP::socket::shutdown_both);
             m_socket.close();
+
         }
+#else
+            if (bev!= nullptr)
+            {
+                bufferevent_free(bev);
+                bev= nullptr;
+            }
+#endif
+        }
+
+        connected=false;
     }
 
 private:
+#ifdef IMPL_ASIO
     TCP::socket m_socket;
+#else
+    event_base* base= nullptr;
+    bufferevent* bev= nullptr;
+#endif
     char m_ip[256];
     unsigned int m_port;
     bool connected = false;
