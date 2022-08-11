@@ -19,6 +19,7 @@ bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callba
 
 FileInfo::FileInfo(const string &path)
 {
+    Pointerable<impl_fileinfo>::makeAlive(this);
     myImpl().init(path);
 }
 

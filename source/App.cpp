@@ -7,8 +7,8 @@
 #include "Application/Component.h"
 #include "Application/App.h"
 #include "Launcher.h"
+#include <map>
 #include <iostream>
-#include <Application/LocalTranslator.h>
 
 TranslateLauncher launcher;
 void makeLauncher(Launcher **launch)

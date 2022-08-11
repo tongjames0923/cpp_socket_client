@@ -8,20 +8,27 @@
 #include <memory>
 
 
+
+
+
 template<typename IMP>
 class Pointerable
 {
 public:
-
-    ~Pointerable() = default;
-
-    Pointerable() : m_impl(new IMP())
+    operator IMP()
     {
-
+        if (Pointerable<IMP>::alive(*this))
+        return m_impl;
+        else
+            throw std::runtime_error("Pointerable is not alive");
     }
     static void resetCore(Pointerable<IMP> *self,IMP* imp= nullptr)
     {
         self->m_impl.reset(imp);
+    }
+    static void makeAlive(Pointerable<IMP> *self)
+    {
+        self->resetCore(self,new IMP());
     }
     static bool alive(const Pointerable<IMP> &self)
     {
@@ -45,6 +52,16 @@ protected:
             throw std::runtime_error("impl is nullptr");
 
         return *m_impl;
+    }
+};
+
+template<typename IMP>
+class AutoAlivePointerable : public virtual Pointerable<IMP>
+{
+public:
+    AutoAlivePointerable()
+    {
+        Pointerable<IMP>::makeAlive(this);
     }
 };
 
