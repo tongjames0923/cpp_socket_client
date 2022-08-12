@@ -4,11 +4,6 @@
 #include "Application/App.h"
 #include "Application/config.h"
 using namespace std;
-
-
-
-//NOTE:
-
 int main(int args, char *argc[])
 {
      Features::readConfig();
@@ -29,8 +24,6 @@ int main(int args, char *argc[])
         std::cerr << err.what() << "\n";
         return 0;
     }
-
-    return 1;
 }
 
 

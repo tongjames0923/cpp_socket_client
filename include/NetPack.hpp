@@ -15,7 +15,7 @@
 using namespace std;
 
 template <typename D>
-class PackData: public virtual None_Copyable
+class PackData final : public virtual None_Copyable
 {
 private:
     unique_ptr<D,default_delete<D[]>> data = nullptr;
@@ -52,11 +52,11 @@ protected:
     }
 
 public:
-    PackData()
+    PackData() noexcept
     {
     }
 
-    explicit PackData(size_t bsize)
+    explicit PackData(size_t bsize) noexcept
     {
         setBufferSize(bsize);
     }
@@ -77,7 +77,7 @@ public:
         setData(d, bs / (sizeof(D)));
         setBufferSize(bs);
     }
-    char *getBuffer()
+    char *getBuffer() noexcept
     {
         return this->buffer.get();
     }
@@ -86,7 +86,7 @@ public:
         return bufferSize;
     }
 
-    size_t setBufferSize(size_t bs)
+    size_t setBufferSize(size_t bs) noexcept
     {
         size_t old = bufferSize;
         if (bs == 0)
@@ -117,22 +117,22 @@ public:
         }
     }
 
-    D *getData() const
+    D *getData() const noexcept
     {
         return data.get();
     }
 
-    size_t getObjectLen()
+    size_t getObjectLen() const noexcept
     {
         return objSize;
     }
-    void setObjectLen(size_t len)
+    void setObjectLen(size_t len) noexcept
     {
         data.reset(new D[len]);
         objSize = len;
     }
 
-    void setData(const D *d, size_t len = 1)
+    void setData(const D *d, size_t len = 1) noexcept
     {
         if (len != getObjectLen())
         {
@@ -185,11 +185,11 @@ public:
     LimitedQueue() = default;
     virtual ~LimitedQueue()=default;
 
-    const packHandler &getHandler() const
+    const packHandler &getHandler() const noexcept
     {
         return handler;
     }
-    void setHandler(const packHandler &fun)
+    void setHandler(const packHandler &fun) noexcept
     {
         LimitedQueue::handler = fun;
     }
@@ -230,7 +230,7 @@ public:
         // done();
     }
 
-    size_t getQueueSize()
+    size_t getQueueSize() noexcept
     {
         return list.size();
     }

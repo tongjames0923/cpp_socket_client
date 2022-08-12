@@ -4,15 +4,9 @@
 #include <string>
 #include <functional>
 #include "Pointerable.hpp"
-
-
 class impl_fileinfo;
 
-
-
-
-
-struct File_info
+struct File_info final
 {
     /**
      * 文件尺寸
@@ -40,14 +34,14 @@ using fileReadCallback= std::function<bool(int packindex, size_t perRead, size_t
 /**
  * 文件信息读取类
  */
-class FileInfo: private virtual Pointerable<impl_fileinfo>,None_Copyable
+ class FileInfo final : private virtual Pointerable<impl_fileinfo>, public virtual None_Copyable
 {
 public:
     /**
      *
      * @param path 文件路径
      */
-    explicit FileInfo(const std::string& path);
+    explicit FileInfo(const std::string& path) noexcept;
     ~FileInfo();
 
 
@@ -55,13 +49,13 @@ public:
      *
      * @return 返回文件尺寸
      */
-    size_t getFileSize() const;
+    size_t getFileSize() const noexcept;
 
     /**
      *
      * @return 返回文件名
      */
-    std::string getFileName() const;
+    std::string getFileName() const noexcept;
 
     /**
      * 读取文件内容

@@ -3,25 +3,9 @@
 //
 
 #include "Application/Components/LocalTranslator.h"
-#include <Application/App.h>
-#include <Application/Components/TranslateLauncher.h>
 #include "Application/config.h"
-
-void TranslateLauncher::ready(int argc, char **argv)
-{
-    using namespace Features;
-    setArgFunction(COMMAND[0], forH);
-    setArgFunction(COMMAND[1], forH);
-    setArgFunction(COMMAND[2], forConfigNick);
-    setArgFunction(COMMAND[3], forShowNick);
-    setArgFunction(COMMAND[4], forRun);
-}
-
-TranslateLauncher::~TranslateLauncher()=default;
-
+#include "Backend/imp_LocalTranslator.hpp"
 #include "NetPack.hpp"
-#include "FileInfo.h"
-#include "SocketClient.h"
 
 using namespace std;
 
@@ -29,17 +13,20 @@ using namespace std;
 size_t hassent = 0;
 
 LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port,
-                                 size_t packLimit) : fi(filePath), client(ip, port)
+                                 size_t packLimit)
 {
+    impl_LocalTranslator& instance=myImpl();
+    instance.client.init(ip,port);
+    instance.fi.init(filePath);
     setLen(packLimit);
-    setHandler([this](pack *pk, unsigned md) -> bool
+    setHandler([&instance,this](pack *pk, unsigned md) -> bool
                {
-                   size_t sent = client.send(pk->pullData(), pk->getObjectLen());
+                   size_t sent = instance.client.send(pk->pullData(), pk->getObjectLen());
                    if (sent != pk->getObjectLen())
                    {
-                       if(onSentFail!= nullptr)
+                       if(instance.onSentFail!= nullptr)
                        {
-                           if(!onSentFail(pk,pk->getObjectLen(),sent))
+                           if(!instance.onSentFail(pk,pk->getObjectLen(),sent))
                            {
                                done();
                                return false;
@@ -54,8 +41,8 @@ LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned 
 
                    } else
                    {
-                       if(onSentSuccess!= nullptr)
-                           onSentSuccess(pk,pk->getObjectLen(),sent);
+                       if(instance.onSentSuccess!= nullptr)
+                           instance.onSentSuccess(pk,pk->getObjectLen(),sent);
                        hassent+=sent;
                        return true;
                    } });
@@ -63,7 +50,7 @@ LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned 
 
 bool LocalTranslator::OnReady()
 {
-    bool connect = client.connect();
+    bool connect = myImpl().client.connect();
     return connect;
 }
 
@@ -72,7 +59,7 @@ bool LocalTranslator::OnDone()
     return true;
 }
 
-size_t makeHead(const FileInfo &info, char *buffer, size_t bufferLen = pack_Len)
+size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack_Len)
 {
     size_t filename_size = info.getFileName().length() + 1;
     size_t file_info_size = sizeof(File_info);
@@ -102,17 +89,17 @@ size_t LocalTranslator::runIt()
 
     char b_tmp[pack_Len];
     pack head(pack_Len);
-    size_t ls = makeHead(this->fi, b_tmp);
+    size_t ls = makeHead(cMyImpl().fi, b_tmp);
     head.setData(b_tmp, ls);
     this->pushIn(std::move(head), true);
-    fi.readFile(b_tmp, pack_Len, [&b_tmp, this](int pks, size_t per, size_t total) -> bool
+    myImpl().fi.readFile(b_tmp, pack_Len, [&b_tmp, this](int pks, size_t per, size_t total) -> bool
                 {
         pack pk(pack_Len);
         pk.setData(b_tmp, per);
         this->pushIn(std::move(pk), true);
-        if(onFileRead!= nullptr)
+        if(myImpl().onFileRead!= nullptr)
         {
-            onFileRead(pks,per);
+            myImpl().onFileRead(pks,per);
         }
         return true; });
     handle(nullptr);
@@ -128,25 +115,30 @@ bool LocalTranslator::readyForConnect()
 size_t LocalTranslator::getTotalFileSize() const
 {
 
-    return fi.getFileSize();
+    return cMyImpl().fi.getFileSize();
 }
 
 std::string LocalTranslator::getFileName() const
 {
-    return fi.getFileName();
+    return cMyImpl().fi.getFileName();
 }
 
 void LocalTranslator::setOnSentFail(callback_data_sent cb)
 {
-    this->onSentFail = cb;
+    myImpl().onSentFail = cb;
 }
 
 void LocalTranslator::setOnSentSuccess(callback_data_sent cb)
 {
-    onSentSuccess = cb;
+    myImpl().onSentSuccess = cb;
 }
 
 void LocalTranslator::setOnFileRead(callback_file_read cb)
 {
-    onFileRead = cb;
+    myImpl().onFileRead = cb;
+}
+
+LocalTranslator::~LocalTranslator()
+{
+
 }

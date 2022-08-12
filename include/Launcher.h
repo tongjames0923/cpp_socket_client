@@ -39,7 +39,7 @@ public:
 
     void putData(std::string dataName, void *data, size_t length);
 
-    bool getData(std::string dataName, void *data, size_t length);
+    bool getData(std::string dataName, void *data, size_t length) noexcept;
 
     bool existData(std::string data);
 

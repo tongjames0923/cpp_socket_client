@@ -4,16 +4,15 @@
 
 #ifndef SOCKET_CLIENT_LOCALTRANSLATOR_H
 #define SOCKET_CLIENT_LOCALTRANSLATOR_H
-
-#include <FileInfo.h>
-#include <SocketClient.h>
+#include "Pointerable.hpp"
 #include "PackQueue_Limited_Len.hpp"
-
-class LocalTranslator : private virtual PackQueue_Limited_Len<char>
+class impl_LocalTranslator;
+class LocalTranslator final : private virtual PackQueue_Limited_Len<char>, public virtual None_Copyable,public virtual AutoAlivePointerable<impl_LocalTranslator>
 {
 public:
+
     using callback_data_sent =
-    function< bool(pack
+    function< bool(PackQueue_Limited_Len<char>::pack
     * pk,
     size_t should, size_t
     sent)>;
@@ -23,7 +22,7 @@ public:
 
     LocalTranslator(const char *filePath, const char *ip, unsigned int port,
                     size_t packLimit);
-
+    ~LocalTranslator();
     bool readyForConnect();
 
     size_t getTotalFileSize() const;
@@ -43,14 +42,6 @@ protected:
     bool OnReady() override;
 
     bool OnDone() override;
-
-private:
-    FileInfo fi;
-    SocketClient client;
-    callback_data_sent onSentFail = nullptr;
-    callback_data_sent onSentSuccess = nullptr;
-    callback_file_read onFileRead = nullptr;
-
 };
 
 

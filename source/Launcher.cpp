@@ -91,7 +91,7 @@ bool Launcher::existData(std::string data)
     return  myImpl().m_dataMapper.count(data) > 0;
 }
 
-bool Launcher::getData(std::string dataName, void *data, size_t length)
+bool Launcher::getData(std::string dataName, void *data, size_t length) noexcept
 {
     if (existData(dataName))
     {

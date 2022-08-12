@@ -11,7 +11,7 @@ class impl_SocketClient;
 /**
  * 端口客户端
  */
-class SocketClient:public virtual AutoAlivePointerable<impl_SocketClient>,None_Copyable
+class SocketClient final :public virtual AutoAlivePointerable<impl_SocketClient>,None_Copyable
 {
 public:
 

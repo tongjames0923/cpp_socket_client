@@ -9,8 +9,8 @@
 class TranslateLauncher : public virtual Launcher
 {
 public:
-    static constexpr const char * COMMAND[] = {"-h", "--help", "-config_nick", "-nick", "run"};
-    static constexpr int cmd_h = 0, cmd_help = 1, cmd_run = 4, cmd_config_nick = 2, cmd_nick = 3;
+    static constexpr const char * COMMAND[] = {"-h", "--help", "-config_nick", "-nick", "run","run_port"};
+    static constexpr int cmd_h = 0, cmd_help = 1, cmd_run = 4, cmd_config_nick = 2, cmd_nick = 3,cmd_run_port = 5;
     ~TranslateLauncher() override;
 protected:
     void ready(int argc, char **argv) override;
