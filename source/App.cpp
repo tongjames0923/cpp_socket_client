@@ -155,7 +155,7 @@ namespace Features
                 owner->getData(owner->getDefaultArgName(key, 0), _ip, 256);
 
                 filePath = string(target);
-                ip = string(ip);
+                ip = string(_ip);
                 if (nickNames.count(ip) > 0)
                     ip = nickNames[ip];
                 runit();

@@ -26,6 +26,7 @@ class Launcher:protected virtual Pointerable<imp_Launcher>,public virtual None_C
 {
 public:
     Launcher();
+    virtual ~Launcher();
     using ArgFunction = std::function<void(Launcher *self)>;
 
     void Start(int argc, char **argv);

@@ -1,10 +1,5 @@
 #include "SocketClient.h"
-#include <boost/bind/bind.hpp>
-#include <chrono>
-#include <iostream>
 #include "Backend/imp_SocketClient.h"
-using namespace std;
-using namespace boost::placeholders;
 
 
 SocketClient::SocketClient(const std::string &ip, const unsigned int &port)
@@ -58,5 +53,9 @@ size_t SocketClient::receive(char *buffer, size_t size)
 void SocketClient::closeSocket()
 {
     myImpl().closeSocket();
+}
+
+SocketClient::SocketClient()
+{
 }
 

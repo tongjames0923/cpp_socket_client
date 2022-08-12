@@ -20,6 +20,8 @@ public:
     PackQueue_Limited_Len() : LimitedQueue<D>(), len(0)
     {
     }
+    virtual ~PackQueue_Limited_Len()=default;
+
     size_t getLen() const
     {
         return len;

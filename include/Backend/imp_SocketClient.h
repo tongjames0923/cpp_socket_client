@@ -16,7 +16,7 @@
 #include "Application/config.h"
 
 using namespace std;
-//#define IMPL_ASIO
+#define IMPL_ASIO
 
 #ifdef IMPL_ASIO
 #include <boost/asio.hpp>
@@ -126,13 +126,14 @@ impl_SocketClient():base(event_base_new())
         bufferevent_enable(bev, EV_READ | EV_WRITE);
         bufferevent_set_max_single_read(bev,pack_Len);
         bufferevent_set_max_single_write(bev,pack_Len);
-        connected =flag!=-1;
+        //FIXME 无法确认是否连接成功
+        connected =flag==0;
+#endif
         if (connected&&remember)
         {
             std::strcpy(m_ip,ip.c_str());
             m_port=port;
         }
-#endif
         return this->connected;
     }
 

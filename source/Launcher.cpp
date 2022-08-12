@@ -146,3 +146,6 @@ Launcher::Launcher()
 {
     Pointerable<imp_Launcher>::makeAlive(this);
 }
+
+Launcher::~Launcher()=default;
+

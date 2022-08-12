@@ -12,16 +12,18 @@
 
 
 template<typename IMP>
-class Pointerable
+class Pointerable:public virtual std::enable_shared_from_this<Pointerable<IMP>>
 {
 public:
     operator IMP()
     {
         if (Pointerable<IMP>::alive(*this))
-        return m_impl;
+        return this->shared_from_this();
         else
             throw std::runtime_error("Pointerable is not alive");
     }
+    virtual ~Pointerable()=default;
+    Pointerable()=default;
     static void resetCore(Pointerable<IMP> *self,IMP* imp= nullptr)
     {
         self->m_impl.reset(imp);
@@ -63,6 +65,7 @@ public:
     {
         Pointerable<IMP>::makeAlive(this);
     }
+    virtual ~AutoAlivePointerable()=default;
 };
 
 
@@ -71,6 +74,7 @@ class None_Copyable
 public:
     None_Copyable(const None_Copyable &other) = delete;
     None_Copyable()= default;
+    virtual  ~None_Copyable()=default;
 };
 
 #endif //SOCKET_CLIENT_POINTERABLE_H

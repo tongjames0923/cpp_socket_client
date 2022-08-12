@@ -15,7 +15,7 @@
 using namespace std;
 
 template <typename D>
-class PackData
+class PackData: public virtual None_Copyable
 {
 private:
     unique_ptr<D,default_delete<D[]>> data = nullptr;
@@ -59,6 +59,17 @@ public:
     explicit PackData(size_t bsize)
     {
         setBufferSize(bsize);
+    }
+    PackData(PackData&& other) noexcept
+    {
+        this->buffer=std::move(other.buffer);
+        this->data=std::move(other.data);
+        this->bufferSize=other.bufferSize;
+        this->objSize=other.objSize;
+        other.buffer.reset(nullptr);
+        other.data.reset(nullptr);
+        other.bufferSize=0;
+        other.objSize=0;
     }
 
     explicit PackData(const D *d, size_t bs = sizeof(D))
@@ -172,6 +183,7 @@ public:
     using packHandler = function<bool(pack *, unsigned mode)>;
 
     LimitedQueue() = default;
+    virtual ~LimitedQueue()=default;
 
     const packHandler &getHandler() const
     {
@@ -223,10 +235,10 @@ public:
         return list.size();
     }
 
-    bool pushIn(const D &d, bool force = false)
-    {
-        return pushIn(pack(&d), force);
-    }
+//    bool pushIn(const D &d, bool force = false)
+//    {
+//        return pushIn(pack(&d), force);
+//    }
 
     size_t PushAll(pack *pkgs, size_t len, bool force)
     {

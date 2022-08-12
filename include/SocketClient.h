@@ -15,7 +15,8 @@ class SocketClient:public virtual AutoAlivePointerable<impl_SocketClient>,None_C
 {
 public:
 
-    SocketClient()= default;
+    SocketClient();
+
 
     /**
      *
