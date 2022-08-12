@@ -1,5 +1,6 @@
+#include "Backend/imp_FileInfo.hpp"
 #include "FileInfo.h"
-#include "Backend/imp_FileInfo.h"
+
 
 size_t FileInfo::getFileSize() const
 {
@@ -22,4 +23,6 @@ FileInfo::FileInfo(const string &path)
     Pointerable<impl_fileinfo>::makeAlive(this);
     myImpl().init(path);
 }
+
+FileInfo::~FileInfo()=default;
 

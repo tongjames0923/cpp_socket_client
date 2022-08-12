@@ -2,13 +2,14 @@
 // Created by tbs on 2022/8/11.
 //
 
-#ifndef SOCKET_CLIENT_IMP_LAUNCHER_H
-#define SOCKET_CLIENT_IMP_LAUNCHER_H
+#ifndef SOCKET_CLIENT_IMP_LAUNCHER_HPP
+#define SOCKET_CLIENT_IMP_LAUNCHER_HPP
 
 #include <memory>
 #include <string>
 #include <map>
 struct ArgInfo;
+struct ArgData;
 class imp_Launcher
 {
 public:
@@ -21,4 +22,4 @@ public:
 };
 
 
-#endif //SOCKET_CLIENT_IMP_LAUNCHER_H
+#endif //SOCKET_CLIENT_IMP_LAUNCHER_HPP

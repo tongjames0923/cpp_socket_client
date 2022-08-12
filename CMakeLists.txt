@@ -21,7 +21,7 @@ else ()
 endif ()
 
 include_directories(BEFORE ${boost} ${PROJECT_SOURCE_DIR}/include)
-file(GLOB_RECURSE SOURCE "source/*.cpp" "source/*.c" "include/*.h" )
+file(GLOB_RECURSE SOURCE "include/*.hpp" "source/*.cpp" "source/*.c"  )
 #add_subdirectory(progress)
 #add_subdirectory(${PROJECT_SOURCE_DIR}/clientLib)
 add_executable(socket_client  ${SOURCE} main.cpp)

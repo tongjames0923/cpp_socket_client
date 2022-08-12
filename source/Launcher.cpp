@@ -1,9 +1,10 @@
 //
 // Created by tbs on 2022/8/9.
 //
-
 #include "Launcher.h"
-#include "Backend/imp_Launcher.h"
+#include "Backend/imp_Launcher.hpp"
+
+
 
 using namespace std;
 
@@ -144,8 +145,12 @@ std::string Launcher::getDefaultArgName(const std::string &arg, int argc)
 
 Launcher::Launcher()
 {
-    Pointerable<imp_Launcher>::makeAlive(this);
+    selfType ::makeAlive(this);
 }
 
-Launcher::~Launcher()=default;
+Launcher::~Launcher() =default;
 
+void imp_Launcher_Deleter::operator()(imp_Launcher *p) const
+{
+    delete p;
+}

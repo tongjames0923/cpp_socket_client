@@ -2,8 +2,8 @@
 // Created by tbs on 2022/8/10.
 //
 
-#ifndef SOCKET_CLIENT_IMP_FILEINFO_H
-#define SOCKET_CLIENT_IMP_FILEINFO_H
+#ifndef SOCKET_CLIENT_IMP_FILEINFO_HPP
+#define SOCKET_CLIENT_IMP_FILEINFO_HPP
 #include <string>
 #include <fstream>
 using namespace std;
@@ -14,6 +14,7 @@ public:
     std::ifstream file;
     size_t filesize;
     std::string filePath;
+    using imp_read_file_callback=std::function<bool(int packindex, size_t perRead, size_t totalread)>;
     size_t calFileSize()
     {
         std::streampos cur = file.tellg();
@@ -23,6 +24,7 @@ public:
         file.seekg(cur, std::ios_base::beg);
         return e;
     }
+
     void init(const std::string& path)
     {
         file.open(path, ios_base::binary);
@@ -43,7 +45,7 @@ public:
     {
         return filePath;
     }
-    bool readFile(char *buffer, size_t bufferSize, fileReadCallback callback)
+    bool readFile(char *buffer, size_t bufferSize, imp_read_file_callback callback)
     {
         streampos cur = file.tellg();
         file.seekg(0, ios_base::beg);
@@ -63,4 +65,4 @@ public:
 
 };
 
-#endif //SOCKET_CLIENT_IMP_FILEINFO_H
+#endif //SOCKET_CLIENT_IMP_FILEINFO_HPP

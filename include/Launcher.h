@@ -9,7 +9,8 @@
 #include <memory>
 #include <queue>
 #include <string>
-#include "Pointerable.h"
+#include "Pointerable.hpp"
+class imp_Launcher;
 struct ArgData
 {
     std::shared_ptr<char> args;
@@ -21,12 +22,17 @@ struct ArgInfo
     char name[128];
     int start;
 };
-class imp_Launcher;
-class Launcher:protected virtual Pointerable<imp_Launcher>,public virtual None_Copyable
+struct imp_Launcher_Deleter final
+{
+    constexpr imp_Launcher_Deleter() noexcept = default;
+    void operator()(imp_Launcher *p) const;
+};
+class Launcher: protected virtual Pointerable<imp_Launcher,imp_Launcher_Deleter>, public virtual None_Copyable
 {
 public:
+
     Launcher();
-    virtual ~Launcher();
+    ~Launcher() override;
     using ArgFunction = std::function<void(Launcher *self)>;
 
     void Start(int argc, char **argv);
@@ -57,6 +63,8 @@ protected:
     {
         return true;
     }
+
+
 };
 
 

@@ -1,5 +1,6 @@
+#include "Backend/imp_SocketClient.hpp"
 #include "SocketClient.h"
-#include "Backend/imp_SocketClient.h"
+
 
 
 SocketClient::SocketClient(const std::string &ip, const unsigned int &port)
@@ -58,4 +59,6 @@ void SocketClient::closeSocket()
 SocketClient::SocketClient()
 {
 }
+
+SocketClient::~SocketClient()=default;
 

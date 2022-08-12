@@ -3,7 +3,7 @@
 
 #include <string>
 #include <functional>
-#include "Pointerable.h"
+#include "Pointerable.hpp"
 
 
 class impl_fileinfo;
@@ -48,7 +48,7 @@ public:
      * @param path 文件路径
      */
     explicit FileInfo(const std::string& path);
-
+    ~FileInfo();
 
 
     /**

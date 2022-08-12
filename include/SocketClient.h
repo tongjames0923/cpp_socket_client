@@ -6,7 +6,7 @@
 #define SOCKET_CLIENT_SOCKETCLIENT_H
 
 #include <string>
-#include "Pointerable.h"
+#include "Pointerable.hpp"
 class impl_SocketClient;
 /**
  * 端口客户端
@@ -17,7 +17,7 @@ public:
 
     SocketClient();
 
-
+    ~SocketClient();
     /**
      *
      * @param ip 连接的ip

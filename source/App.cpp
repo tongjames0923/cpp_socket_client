@@ -1,12 +1,13 @@
 //
 // Created by tbs on 2022/8/10.
 //
-
+#include "Application/App.h"
 #include <cJSON.h>
 #include <sstream>
-#include "Application/Component.h"
-#include "Application/App.h"
-#include "Launcher.h"
+#include "Application/Components/TranslateLauncher.h"
+#include "Application/Components/LocalTranslator.h"
+
+
 #include <map>
 #include <iostream>
 

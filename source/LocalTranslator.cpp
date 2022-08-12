@@ -2,8 +2,9 @@
 // Created by tbs on 2022/8/10.
 //
 
-#include "Application/Component.h"
+#include "Application/Components/LocalTranslator.h"
 #include <Application/App.h>
+#include <Application/Components/TranslateLauncher.h>
 #include "Application/config.h"
 
 void TranslateLauncher::ready(int argc, char **argv)
@@ -15,7 +16,10 @@ void TranslateLauncher::ready(int argc, char **argv)
     setArgFunction(COMMAND[3], forShowNick);
     setArgFunction(COMMAND[4], forRun);
 }
-#include "NetPack.h"
+
+TranslateLauncher::~TranslateLauncher()=default;
+
+#include "NetPack.hpp"
 #include "FileInfo.h"
 #include "SocketClient.h"
 
