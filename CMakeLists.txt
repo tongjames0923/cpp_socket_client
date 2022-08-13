@@ -26,4 +26,4 @@ file(GLOB_RECURSE SOURCE "include/*.hpp" "source/*.cpp" "source/*.c"  )
 #add_subdirectory(${PROJECT_SOURCE_DIR}/clientLib)
 add_executable(socket_client  ${SOURCE} main.cpp)
 
-target_link_libraries(socket_client PUBLIC event)
+#target_link_libraries(socket_client PUBLIC event)

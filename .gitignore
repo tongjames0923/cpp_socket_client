@@ -9,3 +9,4 @@ out
 /relruntime
 /relebuild
 progress/.DS_Store
+/CMakeSettings.json

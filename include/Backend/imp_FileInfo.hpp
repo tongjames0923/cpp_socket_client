@@ -5,6 +5,7 @@
 #ifndef SOCKET_CLIENT_IMP_FILEINFO_HPP
 #define SOCKET_CLIENT_IMP_FILEINFO_HPP
 #include <string>
+#include <functional>
 #include <fstream>
 using namespace std;
 
@@ -49,7 +50,8 @@ public:
     {
         streampos cur = file.tellg();
         file.seekg(0, ios_base::beg);
-        size_t hasread = 0, singleRead = 0, pack = 0;
+        size_t hasread = 0, singleRead = 0;
+        int pack = 0;
         bool iscon = true;
         while (!file.eof() && iscon)
         {

@@ -5,27 +5,32 @@
 #ifndef SOCKET_CLIENT_LOCALTRANSLATOR_H
 #define SOCKET_CLIENT_LOCALTRANSLATOR_H
 #include "Pointerable.hpp"
-#include "PackQueue_Limited_Len.hpp"
+#include <functional>
 class impl_LocalTranslator;
-class LocalTranslator final : private virtual PackQueue_Limited_Len<char>, public virtual None_Copyable,public virtual AutoAlivePointerable<impl_LocalTranslator>
+
+struct imp_TranslatorDeleter
+{
+    constexpr imp_TranslatorDeleter() noexcept = default;
+    void operator()(impl_LocalTranslator* p) const;
+};
+
+class LocalTranslator final :  public virtual None_Copyable,public virtual AutoAlivePointerable<impl_LocalTranslator,imp_TranslatorDeleter>
 {
 public:
 
     using callback_data_sent =
-    function< bool(PackQueue_Limited_Len<char>::pack
-    * pk,
+    std::function< bool(char* bf,
     size_t should, size_t
     sent)>;
-    using callback_file_read = function<void(int pks, size_t read)>;
+    using callback_file_read =std:: function<void(int pks, size_t read)>;
 
     LocalTranslator(const LocalTranslator &cpy) = delete;
 
-    LocalTranslator(const char *filePath, const char *ip, unsigned int port,
-                    size_t packLimit);
+    LocalTranslator(const char *filePath, const char *ip, unsigned int port);
     ~LocalTranslator();
     bool readyForConnect();
-
     size_t getTotalFileSize() const;
+    size_t getSent()const;
 
     std::string getFileName() const;
 
@@ -37,11 +42,6 @@ public:
 
 
     size_t runIt();
-
-protected:
-    bool OnReady() override;
-
-    bool OnDone() override;
 };
 
 

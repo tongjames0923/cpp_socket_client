@@ -8,7 +8,7 @@ size_t FileInfo::getFileSize() const noexcept
     return cMyImpl().getFileSize();
 }
 
-std::string FileInfo::getFileName() const   noexcept
+std::string FileInfo::getFileName() const noexcept
 {
     return cMyImpl().getFileName();
 }

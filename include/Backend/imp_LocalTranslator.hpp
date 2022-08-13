@@ -9,10 +9,6 @@
 #include "imp_FileInfo.hpp"
 #include "imp_SocketClient.hpp"
 
-template<typename T>
-class PackData;
-
-using pack=PackData<char>;
 
 
 class impl_LocalTranslator
@@ -20,7 +16,7 @@ class impl_LocalTranslator
 public:
     using imp_callback_data_sent =
     function<
-    bool(pack
+    bool(char
     * pk,
     size_t should, size_t
     sent)>;
@@ -28,6 +24,7 @@ public:
     int pks, size_t
     read)>;
     impl_fileinfo fi;
+    size_t hassent = 0;
     impl_SocketClient client;
     imp_callback_data_sent onSentFail = nullptr;
     imp_callback_data_sent onSentSuccess = nullptr;

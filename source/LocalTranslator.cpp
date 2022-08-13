@@ -5,59 +5,20 @@
 #include "Application/Components/LocalTranslator.h"
 #include "Application/config.h"
 #include "Backend/imp_LocalTranslator.hpp"
-#include "NetPack.hpp"
+#include "FileInfo.h"
 
 using namespace std;
 
 
-size_t hassent = 0;
 
-LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port,
-                                 size_t packLimit)
+
+LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port)
 {
     impl_LocalTranslator& instance=myImpl();
     instance.client.init(ip,port);
     instance.fi.init(filePath);
-    setLen(packLimit);
-    setHandler([&instance,this](pack *pk, unsigned md) -> bool
-               {
-                   size_t sent = instance.client.send(pk->pullData(), pk->getObjectLen());
-                   if (sent != pk->getObjectLen())
-                   {
-                       if(instance.onSentFail!= nullptr)
-                       {
-                           if(!instance.onSentFail(pk,pk->getObjectLen(),sent))
-                           {
-                               done();
-                               return false;
-                           }
-                           return true;
-                       }
-                       else
-                       {
-                           done();
-                           return false;
-                       }
-
-                   } else
-                   {
-                       if(instance.onSentSuccess!= nullptr)
-                           instance.onSentSuccess(pk,pk->getObjectLen(),sent);
-                       hassent+=sent;
-                       return true;
-                   } });
 }
 
-bool LocalTranslator::OnReady()
-{
-    bool connect = myImpl().client.connect();
-    return connect;
-}
-
-bool LocalTranslator::OnDone()
-{
-    return true;
-}
 
 size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack_Len)
 {
@@ -78,44 +39,71 @@ size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack
     return total_size;
 }
 
-using pack = PackData<char>;
 
+
+static char b_tmp[pack_Len];
 size_t LocalTranslator::runIt()
 {
-    if (!is_ready())
-    {
-        ready();
-    }
+    impl_LocalTranslator& ins = myImpl();
+    auto sendAction = [&ins](char* buf, size_t len)->bool {
 
-    char b_tmp[pack_Len];
-    pack head(pack_Len);
-    size_t ls = makeHead(cMyImpl().fi, b_tmp);
-    head.setData(b_tmp, ls);
-    this->pushIn(std::move(head), true);
-    myImpl().fi.readFile(b_tmp, pack_Len, [&b_tmp, this](int pks, size_t per, size_t total) -> bool
-                {
-        pack pk(pack_Len);
-        pk.setData(b_tmp, per);
-        this->pushIn(std::move(pk), true);
-        if(myImpl().onFileRead!= nullptr)
+        size_t sent = ins.client.send(b_tmp, len);
+        if (sent != len)
         {
-            myImpl().onFileRead(pks,per);
+            if (ins.onSentFail != nullptr)
+            {
+                if (!ins.onSentFail(buf, len, sent))
+                {
+                    return false;
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
         }
-        return true; });
-    handle(nullptr);
-    return hassent;
+        else
+        {
+            if (ins.onSentSuccess != nullptr)
+                ins.onSentSuccess(b_tmp, len, sent);
+            ins.hassent += sent;
+            return true;
+        }
+
+    };
+    size_t ls = makeHead(cMyImpl().fi, b_tmp);
+    sendAction(b_tmp, ls);
+    myImpl().fi.readFile(b_tmp, pack_Len, [this,&sendAction](int pks, size_t per, size_t total) -> bool
+                {
+            if (myImpl().onFileRead != nullptr)
+            {
+                myImpl().onFileRead(pks, per);
+            }
+            if (sendAction(b_tmp, per))
+            {
+                return true;
+           }
+            else
+            {
+                return false;
+            } });
+    size_t r = cMyImpl().hassent;
+    myImpl().hassent = 0;
+    return r;
 }
 
-bool LocalTranslator::readyForConnect()
-{
-    ready();
-    return is_ready();
-}
 
 size_t LocalTranslator::getTotalFileSize() const
 {
 
     return cMyImpl().fi.getFileSize();
+}
+
+size_t LocalTranslator::getSent() const
+{
+    return cMyImpl().hassent;
 }
 
 std::string LocalTranslator::getFileName() const
@@ -141,4 +129,16 @@ void LocalTranslator::setOnFileRead(callback_file_read cb)
 LocalTranslator::~LocalTranslator()
 {
 
+}
+
+bool LocalTranslator::readyForConnect()
+{
+    bool con = myImpl().client.connect();
+    return con;
+}
+
+
+void imp_TranslatorDeleter::operator()(impl_LocalTranslator* p) const
+{
+    delete p;
 }

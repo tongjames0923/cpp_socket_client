@@ -9,15 +9,16 @@
 using namespace std;
 
 
-void catchArg(std::queue<const std::string> q, key_function isKey, std::vector<ArgInfo> &des)
+void catchArg(std::deque<std::string> q, key_function isKey, std::vector<ArgInfo> &des)
 {
     int i = 0;
     std::string lstr;
-    ArgInfo info{.start=-1};
+    ArgInfo info;
+    info.start = -1;
     while (!q.empty())
     {
         std::string now = q.front();
-        q.pop();
+        q.pop_front();
         if (isKey(now.c_str(), now.length()))
         {
             if (info.start == -1)
@@ -47,7 +48,7 @@ void catchArg(std::queue<const std::string> q, key_function isKey, std::vector<A
 void Launcher::Start(int argc, char **argv)
 {
     ready(argc, argv);
-    auto q = makeArgQueue(argc, argv);
+    deque<std::string> q = makeArgQueue(argc, argv);
     vector<ArgInfo> infos;
     catchArg(q, [this](const char *name, size_t len) -> bool
     {
@@ -98,7 +99,7 @@ bool Launcher::getData(std::string dataName, void *data, size_t length) noexcept
         ArgData &d = myImpl(). m_dataMapper[dataName];
         if (length >= d.args_len)
         {
-            memcpy(data, d.args.get(), length);
+            memcpy(data, d.args.get(), d.args_len);
             return true;
         } else
             return false;

@@ -5,15 +5,8 @@
 #ifndef SOCKET_CLIENT_IMP_SOCKETCLIENT_HPP
 #define SOCKET_CLIENT_IMP_SOCKETCLIENT_HPP
 
-#include "FileInfo.h"
-
-#include <mutex>
-#include <thread>
-
-#include <deque>
-#include "Application/config.h"
+#include <string>
 #include <iostream>
-#include "Application/config.h"
 
 using namespace std;
 #define IMPL_ASIO

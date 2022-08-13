@@ -11,9 +11,7 @@ namespace Features
 {
 
     void forH(Launcher *owner);
-
     void forConfigNick(Launcher *owner);
-
     void forShowNick(Launcher *owner);
     void forRun_port(Launcher *owner);
     void forRun(Launcher *owner);

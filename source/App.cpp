@@ -11,6 +11,8 @@
 
 #include <map>
 #include <iostream>
+#include <fstream>
+#include <string>
 
 TranslateLauncher launcher;
 
@@ -20,9 +22,9 @@ void makeLauncher(Launcher **launch)
 }
 
 constexpr const unsigned SUCCESS=1,NOT_FOUND=2,INVALID_NEED=3,FAILED_TO_PICK=4;
-int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
+int pickArg(int cmd,size_t need,std::vector<std::string>& args,Launcher *launcher)
 {
-    string key = TranslateLauncher::COMMAND[cmd];
+    std::string key = TranslateLauncher::COMMAND[cmd];
     ArgInfo info;
     bool found = launcher->getArgInfo(key, &info);
     if (found)
@@ -30,8 +32,10 @@ int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
         if(info.length==need)
         {
             char tmp[1024];
+
             for(int i = 0; i<need; i++)
             {
+                memset(tmp, 0, 1024);
                 bool su= launcher->getData( launcher->getDefaultArgName(key, i), tmp, 1024);
                 if (!su)
                     return FAILED_TO_PICK;
@@ -70,11 +74,11 @@ int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
         string config_NICKNAME = "nickname";
         string config_NICKNAME_NICK = "nick";
         string config_NICKNAME_IP = "ip";
-        static const size_t Q_LEN = 32;
 
 
         void outPutConfig()
         {
+            using namespace std;
             cJSON *root = cJSON_CreateObject();
             cJSON *nick = cJSON_AddArrayToObject(root, config_NICKNAME.c_str());
             for (auto i : nickNames)
@@ -84,7 +88,7 @@ int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
                 cJSON_AddStringToObject(obj, config_NICKNAME_IP.c_str(), i.second.c_str());
                 cJSON_AddItemToArray(nick, obj);
             }
-            ofstream out(config_file.c_str());
+            std::ofstream out(config_file.c_str());
             out << cJSON_Print(root);
             out.close();
             cJSON_free(root);
@@ -232,20 +236,19 @@ int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
         {
             cout << "init..." << endl;
             clock_t cost_time = clock();
-            LocalTranslator translator(filePath.c_str(), ip.c_str(), port, Q_LEN);
+            LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
             fileTotal = translator.getTotalFileSize();
-            size_t hasSent = 0;
-            translator.setOnSentFail([](PackData<char> *pk, size_t should, size_t sent) -> bool
+            translator.setOnSentFail([](char *pk, size_t should, size_t sent) -> bool
                                      {
                                          cout << "send function error" << endl;
 
 
                                          return false;
                                      });
-            translator.setOnSentSuccess([&hasSent](PackData<char> *pk, size_t should, size_t sent) -> bool
+            translator.setOnSentSuccess([&translator](char*pk, size_t should, size_t sent) -> bool
                                         {
-                                            hasSent += sent;
-                                            float pec = (float) hasSent / fileTotal * 100;
+                                            size_t hasSent = translator.getSent();
+                                            float pec = (float) hasSent / fileTotal * 100.0;
                                             printf("\r%.2f", pec);
                                             cout << "%";
                                             return true;
@@ -254,10 +257,11 @@ int pickArg(int cmd,size_t need,vector<string>& args,Launcher *launcher)
             bool connected = translator.readyForConnect();
             if (connected)
             {
-                printf("file=%s\tfile_size=%.2f kb \t ip=%s:%d\n", filePath.c_str(), fileTotal / 1024.0, ip.c_str(),
+                printf("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n", filePath.c_str(), fileTotal / 1024.0, ip.c_str(),
                        port);
-                float totalsent = translator.runIt() / 1024.0;
-                cout << "\nhas sent:" << totalsent << "kb" << endl;
+                double totalsent = translator.runIt() / 1024.0;
+                printf("\nhas sent ：%.3lf kb\n", totalsent);
+                //cout << "\nhas sent:" << totalsent << "kb" << endl;
             } else
             {
 
