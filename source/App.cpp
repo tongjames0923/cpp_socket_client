@@ -172,6 +172,7 @@ int pickArg(int cmd,size_t need,std::vector<std::string>& args,Launcher *launche
         {
             forTool([](vector<string>& args)->bool{
                 nickNames[args[0]]=args[1];
+                outPutConfig();
                 return true;
                 },TranslateLauncher::cmd_config_nick,2,owner);
         }
@@ -198,9 +199,9 @@ int pickArg(int cmd,size_t need,std::vector<std::string>& args,Launcher *launche
                 ip = string(args[0]);
                 if (nickNames.count(ip) > 0)
                     ip = nickNames[ip];
-
                 return runit();
             },TranslateLauncher::cmd_run,2,owner);
+            
         }
 
         void forH(Launcher *owner)
@@ -270,8 +271,8 @@ int pickArg(int cmd,size_t need,std::vector<std::string>& args,Launcher *launche
             }
             cost_time = clock() - cost_time;
             std::cout << "\ncost time: " << cost_time / (double) CLOCKS_PER_SEC << " s ";
-            double speed = fileTotal * (CLOCKS_PER_SEC / 1024.0 / 1024.0) /
-                           cost_time;
+            double speed = (double)fileTotal/
+                    (double )cost_time/CLOCKS_PER_SEC/1024.0/1024.0;
             cout << "Speed:" << speed << " MB/s" << endl;
 
             return true;
