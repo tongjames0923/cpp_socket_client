@@ -5,7 +5,18 @@
 #define VERSION "1.3"
 
 static constexpr const unsigned long KB = 1024, MB = KB * 1024;
-const size_t pack_Len = 32* KB,Arg_MAX_LEN=256;
+/// @brief °ü³¤
+const size_t pack_Len = 32* KB;
+#define IMPL_ASIO
+
+static constexpr const char* SOCKET_IMPL =
+#ifdef IMPL_ASIO
+"Implement With ASIO"
+#else
+"Implement With LibEvent"
+#endif // !IMPL_ASIO
+;
+
 
 
 

@@ -7,9 +7,11 @@
 
 #include <string>
 #include <iostream>
+#include "Application/config.h"
+
 
 using namespace std;
-#define IMPL_ASIO
+
 
 #ifdef IMPL_ASIO
 #include <boost/asio.hpp>

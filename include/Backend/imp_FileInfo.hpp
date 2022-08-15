@@ -36,13 +36,13 @@ public:
         this->filePath = path;
         this->filesize = calFileSize();
     }
-    size_t getFileSize() const
+    size_t getFileSize() const       noexcept
     {
 
         return filesize;
     }
 
-    std::string getFileName() const
+    std::string getFileName() const noexcept
     {
         return filePath;
     }

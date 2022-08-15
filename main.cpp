@@ -9,7 +9,7 @@ int main(int args, char *argc[])
      Features::readConfig();
     try
     {
-        printf("version:%s\n", VERSION);
+        printf("version:%s\t detail:%s\n", VERSION,SOCKET_IMPL);
 
 #ifdef RELEASE_MODE
         Launcher* launcher;
