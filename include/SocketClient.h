@@ -64,6 +64,10 @@ public:
     /// \return 成功发送的长度
     size_t send(char *buffer, size_t size);
 
+#ifdef IMPL_ASIO
+    size_t send(asio::mutable_buffer& buffer);
+#endif
+
     /// 接收数据
     /// \param buffer 数据缓存区
     /// \param size 缓存区长度

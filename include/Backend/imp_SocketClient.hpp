@@ -160,8 +160,16 @@ public:
     {
         return m_port;
     }
-
-
+#ifdef IMPL_ASIO
+    size_t  send(asio::mutable_buffer & bf)
+    {
+        if(connected)
+        {
+            return m_socket.send(bf);
+        }
+        return -1;
+    }
+#endif // IM
     size_t send(char *buffer, size_t size)
     {
 #ifdef IMPL_ASIO
@@ -169,11 +177,12 @@ public:
         {
             return m_socket.send(asio::buffer(buffer, size));
         }
+
 #else
         if (connected)
         {
             int fg = bufferevent_write(bev, buffer, size);
-            sends++;
+            ++sends;
             event_base_dispatch(base);
 //            std::unique_lock<std::mutex> lock(waiter_mutex);
 //            waiter.wait(lock,[this]{return sends==0;});
@@ -263,7 +272,7 @@ private:
     conn_writecb(struct bufferevent *bev, void *user_data)
     {
         impl_SocketClient *client = (impl_SocketClient *) user_data;
-        client->sends--;
+        --(client->sends);
         if (client->sends == 0)
         {
             event_loopbreak();

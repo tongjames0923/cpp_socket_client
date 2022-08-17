@@ -59,6 +59,12 @@ void SocketClient::closeSocket()
 SocketClient::SocketClient()
 {
 }
+#ifdef IMPL_ASIO
+size_t SocketClient::send(asio::mutable_buffer &buffer)
+{
+    return myImpl().send(buffer);
+}
+#endif
 
 SocketClient::~SocketClient() = default;
 
