@@ -6,10 +6,9 @@
 #include "Application/config.h"
 #include "Backend/imp_LocalTranslator.hpp"
 #include "FileInfo.h"
+#include <queue>
 
 using namespace std;
-
-
 
 
 LocalTranslator::LocalTranslator(const char* filePath, const char* ip, unsigned int port)
@@ -42,7 +41,8 @@ size_t makeHead(const impl_fileinfo& info, char* buffer, size_t bufferLen = pack
 
 
 static char b_tmp[pack_Len];
-size_t LocalTranslator::runIt()
+
+size_t LocalTranslator::runIt(callback startread , callback startsent , callback finish )
 {
 	impl_LocalTranslator& ins = myImpl();
 	auto sendAction = [&ins](char* buf, size_t len)->bool {
@@ -50,46 +50,63 @@ size_t LocalTranslator::runIt()
 		size_t sent = ins.client.send(b_tmp, len);
 		if (sent != len)
 		{
-			if (ins.onSentFail != nullptr)
-			{
-				if (!ins.onSentFail(buf, len, sent))
-				{
-					return false;
-				}
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+			return false;
 
 		}
 		else
 		{
-			if (ins.onSentSuccess != nullptr)
-				ins.onSentSuccess(b_tmp, len, sent);
 			ins.hassent += sent;
 			return true;
 		}
 
 	};
+	struct data_
+	{
+		std::unique_ptr<char[]> data;
+		size_t len;
+		data_(char* d, size_t l)
+		{
+			data.reset(d);
+
+			len = l;
+		}
+	};
+	vector<data_> _data_q;
+	bool isok;
+	impl_LocalTranslator& imp = myImpl();
+	if (startread != nullptr)
+	{
+		startread(this);
+	}
+	isok = imp.fi.readFile(b_tmp, pack_Len, [&_data_q](const int& pks, const size_t& per, const size_t& total) -> bool
+		{
+			char* d = new char[per];
+			std::memcpy(d, b_tmp, per);
+			_data_q.emplace_back(std::move(data_(d, per)));
+			return true;
+		});
+	if (startsent != nullptr)
+	{
+		startsent(this);
+	}
 	size_t ls = makeHead(cMyImpl().fi, b_tmp);
 	sendAction(b_tmp, ls);
-	myImpl().fi.readFile(b_tmp, pack_Len, [this, &sendAction](int pks, size_t per, size_t total) -> bool
+	if (isok)
+	{
+		for (data_& d : _data_q)
 		{
-			if (myImpl().onFileRead != nullptr)
-			{
-				myImpl().onFileRead(pks, per);
-			}
-			if (sendAction(b_tmp, per))
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			} });
+			sendAction(d.data.get(), d.len);
+		}
+	}
+	else
+	{
+		return -1;
+	}
 	size_t r = cMyImpl().hassent;
+	if (finish != nullptr)
+	{
+		finish(this);
+	}
 	myImpl().hassent = 0;
 	return r;
 }
@@ -100,10 +117,12 @@ size_t LocalTranslator::getTotalFileSize() const
 
 	return cMyImpl().fi.getFileSize();
 }
-
+mutex locker;
 size_t LocalTranslator::getSent() const
 {
-	return cMyImpl().hassent;
+	lock_guard<mutex> lg(locker);
+	size_t r = cMyImpl().hassent;
+	return r;
 }
 
 std::string LocalTranslator::getFileName() const
@@ -111,20 +130,6 @@ std::string LocalTranslator::getFileName() const
 	return cMyImpl().fi.getFileName();
 }
 
-void LocalTranslator::setOnSentFail(callback_data_sent cb)
-{
-	myImpl().onSentFail = cb;
-}
-
-void LocalTranslator::setOnSentSuccess(callback_data_sent cb)
-{
-	myImpl().onSentSuccess = cb;
-}
-
-void LocalTranslator::setOnFileRead(callback_file_read cb)
-{
-	myImpl().onFileRead = cb;
-}
 
 LocalTranslator::~LocalTranslator()
 {

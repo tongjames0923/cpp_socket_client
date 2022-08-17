@@ -15,49 +15,40 @@ struct imp_TranslatorDeleter
     void operator()(impl_LocalTranslator* p) const;
 };
 
-/// @brief ´«ÊäÎÄ¼ş·â×°Àà
+/// @brief ä¼ è¾“æ–‡ä»¶å°è£…ç±»
 class LocalTranslator final :  public virtual None_Copyable,public virtual AutoAlivePointerable<impl_LocalTranslator,imp_TranslatorDeleter>
 {
 public:
-    /// @brief Êı¾İ·¢ËÍ»Øµ÷
+    /// @brief æ•°æ®å‘é€å›è°ƒ
     using callback_data_sent =
     std::function< bool(char* bf,
     size_t should, size_t
     sent)>;
-    /// @brief ÎÄ¼ş¶ÁÈ¡»Øµ÷
+    /// @brief æ–‡ä»¶è¯»å–å›è°ƒ
     using callback_file_read =std:: function<void(int pks, size_t read)>;
 
     /// @brief 
-    /// @param filePath ÎÄ¼şÂ·¾¶
-    /// @param ip  ·¢ËÍip
-    /// @param port ·¢ËÍ¶Ë¿Ú
+    /// @param filePath æ–‡ä»¶è·¯å¾„
+    /// @param ip  å‘é€ip
+    /// @param port å‘é€ç«¯å£
     LocalTranslator(const char *filePath, const char *ip, unsigned int port);
     ~LocalTranslator();
-    /// @brief Á¬½Ósocket
+    /// @brief è¿æ¥socket
     /// @return 
     bool Connect();
-    /// @brief ÎÄ¼şµÄ×Ü´óĞ¡
+    /// @brief æ–‡ä»¶çš„æ€»å¤§å°
     /// @return 
     size_t getTotalFileSize() const;
-    /// @brief ÒÑ·¢ËÍµÄÊı¾İ³¤¶È
+    /// @brief å·²å‘é€çš„æ•°æ®é•¿åº¦
     /// @return 
     size_t getSent()const;
-    /// @brief µ±Ç°·¢ËÍµÄÎÄ¼şÃû
+    /// @brief å½“å‰å‘é€çš„æ–‡ä»¶å
     /// @return 
     std::string getFileName() const;
-    /// @brief ·¢ËÍ°üÊ§°ÜÊ±ºòµÄ»Øµ÷
-    /// @param cb 
-    void setOnSentFail(callback_data_sent cb);
-    /// @brief ÉèÖÃ·¢ËÍ°ü³É¹¦Ê±ºòµÄ»Øµ÷
-    /// @param cb 
-    void setOnSentSuccess(callback_data_sent cb);
-    /// @brief ÉèÖÃ¶ÁÈ¡ÎÄ¼şÊ±µÄ»Øµ÷
-	/// @param cb 
-    void setOnFileRead(callback_file_read cb);
-
-    /// @brief ÔËĞĞ
-    /// @return ´«Êä³É¹¦µÄ×ÜÊı¾İ
-    size_t runIt();
+    using callback = std::function<void(LocalTranslator* owner)>;
+    /// @brief è¿è¡Œ
+    /// @return ä¼ è¾“æˆåŠŸçš„æ€»æ•°æ®
+    size_t runIt(callback startread = nullptr, callback startsent = nullptr,callback finish=nullptr);
 };
 
 

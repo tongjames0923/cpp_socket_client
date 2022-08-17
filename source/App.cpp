@@ -8,11 +8,15 @@
 #include "Application/Components/LocalTranslator.h"
 #include <memory>
 
+#include <iomanip>
 
 #include <map>
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <chrono>
 
 TranslateLauncher launcher;
 
@@ -232,37 +236,58 @@ namespace Features
 			}
 			}, TranslateLauncher::cmd_run_port, 3, owner);
 	}
-
-
+	atomic_bool finish = false;
 	bool runit()
 	{
 		cout << "init..." << endl;
-		clock_t cost_time = clock();
+		finish = false;
+		clock_t cost_time;
 		LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
 		fileTotal = translator.getTotalFileSize();
-		translator.setOnSentFail([](char* pk, size_t should, size_t sent) -> bool
-			{
-				cout << "send function error" << endl;
-
-
-				return false;
-			});
-		translator.setOnSentSuccess([&translator](char* pk, size_t should, size_t sent) -> bool
-			{
-				size_t hasSent = translator.getSent();
-				float pec = hasSent / fileTotal * 100.0f;
-				printf("\r%.2f", pec);
-				cout << "%";
-				return true;
-			});
 		cout << "connect..." << endl;
 		bool connected = translator.Connect();
 		if (connected)
 		{
 			printf("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n", filePath.c_str(), fileTotal / 1024.0, ip.c_str(),
 				port);
-			double totalsent = translator.runIt() / 1024.0;
-			printf("\nhas sent :%.3lf kb\n", totalsent);
+	
+			translator.runIt([](LocalTranslator* owner) {
+				cout << "reading file..." << endl;
+				}, [&cost_time](LocalTranslator* owner) {
+					cout << "sending..." << endl;
+				    cost_time = clock();
+					thread td([owner]() {
+						mutex locker;
+						unique_lock<mutex> ul(locker);
+						condition_variable con;
+						while (!finish)
+						{
+							cout << "\r";
+							con.wait_for(ul, std::chrono::milliseconds(500), []() ->bool{
+								return finish == true;
+								});
+							printf("%.2f", (double)(owner->getSent()) / (double)fileTotal * 100.0);
+							cout << "%";
+						}
+						cout << "\r100%"<<endl;
+						});
+					td.detach();
+				}, [&cost_time](LocalTranslator* owner) {
+					finish = true;
+					cost_time = clock() - cost_time;
+				size_t sent = owner->getSent();
+				double times =round( (double)cost_time / (double)CLOCKS_PER_SEC*100.0)/100.0;
+				double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
+				double speed = round( (double)fileTotal /mbs
+					 / times * 100.0) / 100.0;
+				cout.setf(ios::fixed, ios::floatfield);
+				cout.precision(2);
+				cout <<  "has sent " << sent / 1024.0f << "kb" << endl<<
+					"cost time : " << cost_time / (float)CLOCKS_PER_SEC <<"s"<<endl<<
+					"Speed :"<<speed<<"mb/s"<<endl;
+				});
+
+
 			//cout << "\nhas sent:" << totalsent << "kb" << endl;
 		}
 		else
@@ -271,11 +296,7 @@ namespace Features
 			cout << "fail to connect" << endl;
 			return false;
 		}
-		cost_time = clock() - cost_time;
-		std::cout << "\ncost time: " << cost_time / (double)CLOCKS_PER_SEC << " s ";
-		double speed = (double)fileTotal /
-			(double)cost_time / CLOCKS_PER_SEC / 1024.0 / 1024.0;
-		printf("Speed :%.3lf MB/S\n", speed);
+
 		//cout << "Speed:" << speed << " MB/s" << endl;
 
 		return true;

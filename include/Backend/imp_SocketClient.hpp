@@ -165,7 +165,7 @@ public:
     size_t send(char *buffer, size_t size)
     {
 #ifdef IMPL_ASIO
-        if (m_socket.is_open())
+        if (connected)
         {
             return m_socket.send(asio::buffer(buffer, size));
         }

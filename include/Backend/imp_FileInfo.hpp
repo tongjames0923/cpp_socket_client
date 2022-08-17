@@ -15,7 +15,7 @@ public:
     std::ifstream file;
     size_t filesize;
     std::string filePath;
-    using imp_read_file_callback=std::function<bool(int packindex, size_t perRead, size_t totalread)>;
+    using imp_read_file_callback=std::function<bool(const int& packindex,const size_t& perRead,const size_t& totalread)>;
     size_t calFileSize()
     {
         std::streampos cur = file.tellg();
