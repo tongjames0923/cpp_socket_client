@@ -46,20 +46,20 @@ size_t LocalTranslator::runIt(callback startread, callback startsent, callback f
     impl_LocalTranslator &ins = myImpl();
 
 #ifdef IMPL_ASIO
-    auto sendAction = [&ins](asio::mutable_buffer& buf)->bool {
+    auto sendAction = [&ins](asio::mutable_buffer &buf) -> bool
+    {
         size_t sent = ins.client.send(buf);
         if (sent != buf.size())
         {
             return false;
 
-        }
-        else
+        } else
         {
             ins.hassent += sent;
             return true;
         }
     };
-    using data_ =asio::mutable_buffer;
+    using data_ = asio::mutable_buffer;
 #else
     auto sendAction = [&ins](char *buf, size_t len) -> bool
     {
@@ -113,7 +113,7 @@ size_t LocalTranslator::runIt(callback startread, callback startsent, callback f
         }
         size_t ls = makeHead(cMyImpl().fi, b_tmp);
 #ifdef IMPL_ASIO
-        auto bf=asio::buffer(b_tmp,ls);
+        auto bf = asio::buffer(b_tmp, ls);
         sendAction(bf);
 #else
         sendAction(b_tmp, ls);

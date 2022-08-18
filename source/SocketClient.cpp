@@ -2,68 +2,70 @@
 #include "SocketClient.h"
 
 
-
-SocketClient::SocketClient(const std::string& ip, const unsigned int& port)
+SocketClient::SocketClient(const std::string &ip, const unsigned int &port)
 {
-	myImpl().init(ip, port);
+    myImpl().init(ip, port);
 }
 
 
 bool SocketClient::connect()
 {
-	return myImpl().connect();
+    return myImpl().connect();
 }
 
-bool SocketClient::connect(const string& ip, const unsigned int& port)
+bool SocketClient::connect(const string &ip, const unsigned int &port)
 {
-	return myImpl().connect(ip, port);
+    return myImpl().connect(ip, port);
 }
 
-SocketClient& SocketClient::setIp(const string& ip)
+SocketClient &SocketClient::setIp(const string &ip)
 {
-	myImpl().setIp(ip);
-	return *this;
+    myImpl().setIp(ip);
+    return *this;
 }
 
-SocketClient& SocketClient::setPort(const unsigned int& port)
+SocketClient &SocketClient::setPort(const unsigned int &port)
 {
-	myImpl().setPort(port);
-	return *this;
+    myImpl().setPort(port);
+    return *this;
 }
 
 std::string SocketClient::getIP() const
 {
-	return cMyImpl().getIP();
+    return cMyImpl().getIP();
 }
 
 unsigned int SocketClient::getPort() const
 {
-	return cMyImpl().getPort();
+    return cMyImpl().getPort();
 }
 
-size_t SocketClient::send(char* buffer, size_t size)
+size_t SocketClient::send(char *buffer, size_t size)
 {
-	return myImpl().send(buffer, size);
+    return myImpl().send(buffer, size);
 }
 
-size_t SocketClient::receive(char* buffer, size_t size)
+size_t SocketClient::receive(char *buffer, size_t size)
 {
-	return myImpl().receive(buffer, size);
+    return myImpl().receive(buffer, size);
 }
 
 void SocketClient::closeSocket()
 {
-	myImpl().closeSocket();
+    myImpl().closeSocket();
 }
 
 SocketClient::SocketClient()
 {
 }
+
 #ifdef IMPL_ASIO
+
 size_t SocketClient::send(asio::mutable_buffer &buffer)
 {
     return myImpl().send(buffer);
 }
+
 #endif
 
 SocketClient::~SocketClient() = default;

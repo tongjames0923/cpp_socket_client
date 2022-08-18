@@ -17,7 +17,7 @@
 #include <mutex>
 #include <chrono>
 
-TranslateLauncher launcher;
+static TranslateLauncher launcher;
 
 void makeLauncher(Launcher **launch)
 {
@@ -80,7 +80,6 @@ namespace Features
 
     void outPutConfig()
     {
-        using namespace std;
         cJSON *root = cJSON_CreateObject();
         cJSON *nick = cJSON_AddArrayToObject(root, config_NICKNAME.c_str());
         for (auto i : nickNames)
@@ -269,17 +268,17 @@ namespace Features
                                                mutex locker;
                                                unique_lock<mutex> ul(locker);
                                                condition_variable con;
-                                               size_t  sent=0;
-                                               size_t  old=0;
-                                               double speed=0;
+                                               size_t sent = 0;
+                                               size_t old = 0;
+                                               double speed = 0;
                                                while (!finish)
                                                {
                                                    con.wait_for(ul, std::chrono::milliseconds(500));
-                                                   sent=owner->getSent();
-                                                   speed=(sent-old)/1024.0/1024.0*2;
-                                                   old=sent;
+                                                   sent = owner->getSent();
+                                                   speed = (sent - old) / 1024.0 / 1024.0 * 2;
+                                                   old = sent;
                                                    printf("\rhas sent %zu bytes\tspeed:%.2f mb/s\t progress:%.2f %%",
-                                                          sent, speed,(double)sent/fileTotal*100.0);
+                                                          sent, speed, (double) sent / fileTotal * 100.0);
                                                }
                                                //cout << "\r100%" << endl;
                                            });

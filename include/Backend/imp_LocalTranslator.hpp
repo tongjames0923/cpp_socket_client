@@ -10,16 +10,15 @@
 #include "imp_SocketClient.hpp"
 
 
-
 class impl_LocalTranslator
 {
 public:
     using imp_callback_data_sent =
     function<
-    bool(char
-    * pk,
-    size_t should, size_t
-    sent)>;
+            bool(char
+                 *pk,
+                 size_t should, size_t
+                 sent)>;
     impl_fileinfo fi;
     size_t hassent = 0;
     impl_SocketClient client;

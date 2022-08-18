@@ -8,6 +8,7 @@
 #include <memory>
 #include <string>
 #include <map>
+
 struct ArgInfo
 {
     /// @brief 参数长度
@@ -18,6 +19,8 @@ struct ArgInfo
     int start;
     /// @brief 参数优先级
     int priority;
+    /// @brief 兼容的组别号
+    int group;
 };
 struct ArgData
 {
@@ -26,6 +29,7 @@ struct ArgData
     /// @brief 参数内容长度
     size_t args_len;
 };
+
 class imp_Launcher
 {
 public:

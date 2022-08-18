@@ -4,6 +4,7 @@
 #include <string>
 #include <functional>
 #include "Pointerable.hpp"
+
 class impl_fileinfo;
 
 struct File_info;
@@ -15,19 +16,20 @@ struct File_info;
  * @param size_t =总共读取字节数
  * @return bool 读取是否继续
  */
-using fileReadCallback= std::function<bool(int packindex, size_t perRead, size_t totalread)> ;
+using fileReadCallback = std::function<bool(int packindex, size_t perRead, size_t totalread)>;
 
 /**
  * 文件信息读取类
  */
- class FileInfo final : private virtual Pointerable<impl_fileinfo>, public virtual None_Copyable
+class FileInfo final : private virtual Pointerable<impl_fileinfo>, public virtual None_Copyable
 {
 public:
     /**
      *
      * @param path 文件路径
      */
-    explicit FileInfo(const std::string& path) noexcept;
+    explicit FileInfo(const std::string &path) noexcept;
+
     ~FileInfo();
 
 

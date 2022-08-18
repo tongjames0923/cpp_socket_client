@@ -14,9 +14,11 @@ using namespace std;
 
 
 #ifdef IMPL_ASIO
+
 #include <boost/asio.hpp>
 #include <chrono>
 #include <boost/bind/bind.hpp>
+
 using namespace boost::placeholders;
 
 
@@ -50,6 +52,7 @@ typedef boost::asio::ip::tcp TCP;
 #include <thread>
 #include <sstream>
 #include <atomic>
+#include <arpa/inet.h>
 #include "Application/config.h"
 
 #endif
@@ -58,9 +61,11 @@ class impl_SocketClient
 {
 public:
 #ifdef IMPL_ASIO
-    impl_SocketClient(): m_socket(getContext()),m_ip("127.0.0.1"),m_port(1997)
+
+    impl_SocketClient() : m_socket(getContext()), m_ip("127.0.0.1"), m_port(1997)
     {
     }
+
 #else
 
     impl_SocketClient() : base(event_base_new())
@@ -159,16 +164,20 @@ public:
     {
         return m_port;
     }
+
 #ifdef IMPL_ASIO
-    size_t  send(asio::mutable_buffer & bf)
+
+    size_t send(asio::mutable_buffer &bf)
     {
-        if(connected)
+        if (connected)
         {
             return m_socket.send(bf);
         }
         return -1;
     }
+
 #endif // IM
+
     size_t send(char *buffer, size_t size)
     {
 #ifdef IMPL_ASIO
@@ -199,7 +208,7 @@ public:
 #ifdef IMPL_ASIO
         if (m_socket.is_open())
         {
-            return m_socket.receive(asio::buffer(buf,buflen));
+            return m_socket.receive(asio::buffer(buf, buflen));
         }
 #else
         if (connected)
@@ -226,12 +235,12 @@ public:
         {
 #ifdef IMPL_ASIO
             if (m_socket.is_open())
-        {
-            if (connected)
-                m_socket.shutdown(TCP::socket::shutdown_both);
-            m_socket.close();
+            {
+                if (connected)
+                    m_socket.shutdown(TCP::socket::shutdown_both);
+                m_socket.close();
 
-        }
+            }
 #else
             event_loopbreak();
             event_base_loopexit(base, nullptr);

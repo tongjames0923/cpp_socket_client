@@ -13,7 +13,9 @@ public:
     static constexpr int cmd_h = 0, cmd_help = 1, cmd_run = 4, cmd_config_nick = 2, cmd_nick = 3,cmd_run_port = 5;
     ~TranslateLauncher() override;
     int prioritySet(const char* argKey, size_t len)const noexcept override;
-    
+
+    int groupSet(const char *argKey, size_t len) const noexcept override;
+
 protected:
     void ready(int argc, char **argv) override;
     

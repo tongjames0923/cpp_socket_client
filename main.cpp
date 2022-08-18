@@ -3,20 +3,22 @@
 #include <Launcher.h>
 #include "Application/App.h"
 #include "Application/config.h"
+
 using namespace std;
+
 int main(int args, char *argc[])
 {
-     Features::readConfig();
+    Features::readConfig();
     try
     {
-        printf("version:%s\t detail:%s\n", VERSION,SOCKET_IMPL);
+        printf("version:%s\t detail:%s\n", VERSION, SOCKET_IMPL);
 
 #ifdef RELEASE_MODE
-        Launcher* launcher;
+        Launcher *launcher;
         makeLauncher(&launcher);
         launcher->Start(args, argc);
 #endif // !Debug
-        
+
         return 1;
     }
     catch (std::exception &err)

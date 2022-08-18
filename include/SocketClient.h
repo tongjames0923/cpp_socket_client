@@ -7,17 +7,20 @@
 
 #include <string>
 #include "Pointerable.hpp"
+
 class impl_SocketClient;
+
 /**
  * 端口客户端
  */
-class SocketClient final :public virtual AutoAlivePointerable<impl_SocketClient>,None_Copyable
+class SocketClient final : public virtual AutoAlivePointerable<impl_SocketClient>, None_Copyable
 {
 public:
 
     SocketClient();
 
     ~SocketClient();
+
     /**
      *
      * @param ip 连接的ip
@@ -65,7 +68,9 @@ public:
     size_t send(char *buffer, size_t size);
 
 #ifdef IMPL_ASIO
-    size_t send(asio::mutable_buffer& buffer);
+
+    size_t send(asio::mutable_buffer &buffer);
+
 #endif
 
     /// 接收数据
@@ -78,7 +83,6 @@ public:
     void closeSocket();
 
 };
-
 
 
 #endif //SOCKET_CLIENT_SOCKETCLIENT_H

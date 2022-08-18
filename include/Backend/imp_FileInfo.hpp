@@ -4,9 +4,11 @@
 
 #ifndef SOCKET_CLIENT_IMP_FILEINFO_HPP
 #define SOCKET_CLIENT_IMP_FILEINFO_HPP
+
 #include <string>
 #include <functional>
 #include <fstream>
+
 using namespace std;
 
 struct File_info final
@@ -24,13 +26,16 @@ struct File_info final
     {
     }
 };
+
 class impl_fileinfo
 {
 public:
     std::ifstream file;
     size_t filesize;
     std::string filePath;
-    using imp_read_file_callback=std::function<bool(const int& packindex,const size_t& perRead,const size_t& totalread)>;
+    using imp_read_file_callback = std::function<bool(const int &packindex, const size_t &perRead,
+                                                      const size_t &totalread)>;
+
     size_t calFileSize()
     {
         std::streampos cur = file.tellg();
@@ -41,17 +46,18 @@ public:
         return e;
     }
 
-    void init(const std::string& path)
+    void init(const std::string &path)
     {
         file.open(path, ios_base::binary);
         if (!file.is_open())
         {
-            throw runtime_error("wrong file Path") ;
+            throw runtime_error("wrong file Path");
         }
         this->filePath = path;
         this->filesize = calFileSize();
     }
-    size_t getFileSize() const       noexcept
+
+    size_t getFileSize() const noexcept
     {
 
         return filesize;
@@ -61,6 +67,7 @@ public:
     {
         return filePath;
     }
+
     bool readFile(char *buffer, size_t bufferSize, imp_read_file_callback callback)
     {
         streampos cur = file.tellg();
@@ -77,7 +84,7 @@ public:
         }
         bool suc = hasread == getFileSize();
         file.seekg(cur, ios_base::beg);
-        return suc&&iscon;
+        return suc && iscon;
     }
 
 };

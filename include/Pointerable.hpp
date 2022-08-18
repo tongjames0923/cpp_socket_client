@@ -73,6 +73,7 @@ public:
         if (self->m_impl.get() != imp)
             self->m_impl.reset(imp);
     }
+
     /// @brief 激活实现类核心，构造一个默认的IMP
     /// @param self 所需激活的类指针
     /// @return 
@@ -80,19 +81,22 @@ public:
     {
         self->resetCore(self, new IMP());
     }
+
     /// @brief 激活实现类核心，拷贝构造
     /// @param self 所需激活的类指针
     /// @param cpy  提供拷贝的地址
     /// @return 
-    static void makeAlive(selfType *self,const IMP& cpy) noexcept
+    static void makeAlive(selfType *self, const IMP &cpy) noexcept
     {
         self->resetCore(self, new IMP(cpy));
     }
-    static void makeAlive(selfType *self,IMP&& cpy) noexcept
+
+    static void makeAlive(selfType *self, IMP &&cpy) noexcept
     {
         self->resetCore(self, new IMP(cpy));
     }
-    /// @brief 
+
+    /// @brief
     /// @param self 所需测试的类
     /// @return  核心是否激活
     static bool alive(const selfType *self) noexcept
@@ -106,25 +110,27 @@ protected:
     /// @brief 获取实现对象，若为空,则将defaultItem移动至核心，imp需支持移动构造函数
     /// @param defaultItem 
     /// @return 
-    IMP& getImpl_Or(IMP&& defaultItem=IMP()) noexcept
+    IMP &getImpl_Or(IMP &&defaultItem = IMP()) noexcept
     {
         if (!selfType::alive(this))
         {
-            resetCore(this,new IMP(std::move(defaultItem)));
+            resetCore(this, new IMP(std::move(defaultItem)));
         }
         return *m_impl;
     }
-   /// @brief 获取const实现对象，若为空,则将defaultItem移动至核心，imp需支持移动构造函数
-   /// @param defaultItem 
-   /// @return 
-   const IMP& getcImpl_Or(IMP&& defaultItem = IMP()) const noexcept
+
+    /// @brief 获取const实现对象，若为空,则将defaultItem移动至核心，imp需支持移动构造函数
+    /// @param defaultItem
+    /// @return
+    const IMP &getcImpl_Or(IMP &&defaultItem = IMP()) const noexcept
     {
         if (!selfType::alive(this))
         {
-            resetCore(this,new IMP(std::move(defaultItem)));
+            resetCore(this, new IMP(std::move(defaultItem)));
         }
         return *m_impl;
     }
+
     /// @brief 获取实现对象，若未激活会报错
     /// @return 
     IMP &myImpl()
@@ -133,6 +139,7 @@ protected:
             throw std::runtime_error("impl is nullptr");
         return *m_impl;
     }
+
     /// @brief 获取const实现对象，若未激活会报错
     /// @return 
     const IMP &cMyImpl() const
@@ -142,12 +149,14 @@ protected:
 
         return *m_impl;
     }
+
     /// @brief 获取实现指针
     /// @return 
     IMP *impl_ptr() noexcept
     {
         return m_impl.get();
     }
+
     /// @brief 获取const的实现指针
     /// @return 
     const IMP *cImpl_ptr() const noexcept
@@ -155,6 +164,7 @@ protected:
         return m_impl.get();
     }
 };
+
 /// @brief 自动激活的PIMPL基类
 /// @tparam IMP 实现类
 /// @tparam DEL 实现类的删除器
