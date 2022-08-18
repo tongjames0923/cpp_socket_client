@@ -7,15 +7,15 @@
 #include "Application/Components/TranslateLauncher.h"
 #include "Application/Components/LocalTranslator.h"
 #include <memory>
+#include "Backend/imp_Launcher.hpp"
 
-
+#include <vector>
 #include <map>
 #include <iostream>
 #include <fstream>
 #include <thread>
 #include <mutex>
 #include <chrono>
-#include <time.h>
 
 TranslateLauncher launcher;
 
@@ -278,7 +278,7 @@ namespace Features
                                                    sent=owner->getSent();
                                                    speed=(sent-old)/1024.0/1024.0*2;
                                                    old=sent;
-                                                   printf("has sent %zu bytes\tspeed:%.2f mb/s\t progress:%.2f %%\n",
+                                                   printf("\rhas sent %zu bytes\tspeed:%.2f mb/s\t progress:%.2f %%",
                                                           sent, speed,(double)sent/fileTotal*100.0);
                                                }
                                                //cout << "\r100%" << endl;

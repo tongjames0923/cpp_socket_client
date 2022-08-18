@@ -5,8 +5,8 @@
 #include "Application/Components/LocalTranslator.h"
 #include "Application/config.h"
 #include "Backend/imp_LocalTranslator.hpp"
-#include "FileInfo.h"
 #include <queue>
+#include <mutex>
 
 using namespace std;
 
@@ -148,7 +148,7 @@ size_t LocalTranslator::getTotalFileSize() const
     return cMyImpl().fi.getFileSize();
 }
 
-mutex locker;
+std::mutex locker;
 
 size_t LocalTranslator::getSent() const
 {

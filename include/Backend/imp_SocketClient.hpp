@@ -47,7 +47,6 @@ typedef boost::asio::ip::tcp TCP;
 
 #include <event.h>
 #include <string>
-#include <arpa/inet.h>
 #include <thread>
 #include <sstream>
 #include <atomic>

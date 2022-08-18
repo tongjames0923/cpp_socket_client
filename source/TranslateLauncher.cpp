@@ -16,3 +16,14 @@ void TranslateLauncher::ready(int argc, char** argv)
 }
 
 TranslateLauncher::~TranslateLauncher() = default;
+
+int TranslateLauncher::prioritySet(const char* argKey, size_t len) const noexcept
+{
+	int pri[] = { 0,0,1,2,3,3 };
+	for (int i = 0; i < 6; ++i)
+	{
+		if (strcmp(COMMAND[i], argKey) == 0)
+			return pri[i];
+	}
+	return 0;
+}

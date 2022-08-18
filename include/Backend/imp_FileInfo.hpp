@@ -9,6 +9,21 @@
 #include <fstream>
 using namespace std;
 
+struct File_info final
+{
+    /**
+     * 文件尺寸
+     */
+    size_t filesize;
+    /**
+     * 文件名长度
+     */
+    size_t filename_size;
+
+    File_info() : filesize(0), filename_size(0)
+    {
+    }
+};
 class impl_fileinfo
 {
 public:

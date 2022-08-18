@@ -3,8 +3,27 @@
 //
 #include "Launcher.h"
 #include "Backend/imp_Launcher.hpp"
+#include <queue>
+#include <list>
 
 using namespace std;
+
+/**
+ * 判断是否为arg传入参数关键字
+ */
+using key_function = std::function<bool(const char* argtext, size_t len)>;
+
+bool cmp_Arginfo(const ArgInfo& a, const ArgInfo& b)
+{
+	return a.priority < b.priority;
+}
+/// @brief 捕获关键字参数
+/// @param argc 参数长度
+/// @param argv 所有参数的值
+/// @param isKey 判断是否是参数关键字
+/// @param des  储存位置
+static void catchArg(int argc, char** argv, key_function isKey,vector<ArgInfo>& des);
+
 
 void Launcher::Start(int argc, char** argv)
 {
@@ -16,6 +35,7 @@ void Launcher::Start(int argc, char** argv)
 		}, infos);
 	for (ArgInfo& item : infos)
 	{
+		item.priority= prioritySet(item.name, strlen(item.name));
 		myImpl().m_infos[item.name] = item;
 		if (autoPutdataFromArgs())
 		{
@@ -25,17 +45,16 @@ void Launcher::Start(int argc, char** argv)
 			}
 		}
 	}
-
-	for (int i = 0; i < argc; i++)
+	sort(infos.begin(), infos.end(), cmp_Arginfo);
+	imp_Launcher& imp = myImpl();
+	for(const ArgInfo& info:infos)
 	{
-		if (existFunction(argv[i]))
-		{
-			myImpl().m_functionMaper[argv[i]](&myImpl());
-		}
+		imp.m_functionMaper[info.name](&imp);
 	}
+
 }
 
-void Launcher::putData(std::string dataName, void* data, size_t length)
+void Launcher::putData(const std::string& dataName, void* data, size_t length) noexcept
 {
 	char* d = new char[length];
 	memcpy(d, data, length);
@@ -47,16 +66,16 @@ void Launcher::putData(std::string dataName, void* data, size_t length)
 	myImpl().m_dataMapper[dataName].args_len = length;
 }
 
-bool Launcher::existData(std::string data)
+bool Launcher::existData(const std::string& data)	const noexcept
 {
-	return  myImpl().m_dataMapper.count(data) > 0;
+	return  cMyImpl().m_dataMapper.count(data) > 0;
 }
 
-bool Launcher::getData(std::string dataName, void* data, size_t length) noexcept
+bool Launcher::getData(const std::string& dataName, void* data, size_t length) const noexcept
 {
 	if (existData(dataName))
 	{
-		ArgData& d = myImpl().m_dataMapper[dataName];
+		const ArgData& d =cMyImpl().m_dataMapper.at(dataName);
 		if (length >= d.args_len)
 		{
 			memcpy(data, d.args.get(), d.args_len);
@@ -66,12 +85,12 @@ bool Launcher::getData(std::string dataName, void* data, size_t length) noexcept
 	return false;
 }
 
-void Launcher::removeData(std::string dataName)
+void Launcher::removeData(const std::string& dataName)	noexcept
 {
 	myImpl().m_dataMapper.erase(dataName);
 }
 
-void Launcher::setArgFunction(std::string argName, Launcher::ArgFunction fun)
+void Launcher::setArgFunction(const std::string& argName, Launcher::ArgFunction fun)  noexcept
 {
 	imp_Launcher::imp_ArgFunction fuc = [fun, this](imp_Launcher* self)
 	{
@@ -80,27 +99,45 @@ void Launcher::setArgFunction(std::string argName, Launcher::ArgFunction fun)
 	myImpl().m_functionMaper[argName] = fuc;
 }
 
-bool Launcher::existFunction(std::string argName)
+bool Launcher::existFunction(const std::string& argName)const noexcept
 {
-	return myImpl().m_functionMaper.count(argName) > 0;
+	return cMyImpl().m_functionMaper.count(argName) > 0;
 }
 
-bool Launcher::getArgInfo(std::string argName, ArgInfo* des)
+bool Launcher::getArgInfo(const std::string& argName, ArgInfo* des) const noexcept
 {
-	bool hasit = myImpl().m_infos.count(argName) > 0;
+	bool hasit = cMyImpl().m_infos.count(argName) > 0;
 	if (hasit)
 	{
-		memcpy(des, &myImpl().m_infos[argName], sizeof(ArgInfo));
+		memcpy(des, &cMyImpl().m_infos.at(argName), sizeof(ArgInfo));
 		return true;
 	}
 	return false;
 }
 
-std::string Launcher::getDefaultArgName(const std::string& arg, int argc)
+std::string Launcher::getDefaultArgName(const std::string& arg, int argc) const noexcept
 {
 	string k(arg);
 	k += "_" + to_string(argc);
 	return k;
+}
+
+int Launcher::prioritySet(const char* argKey, size_t len) const noexcept
+{
+	return 0;
+}
+
+void Launcher::ready(int argc, char** argv)
+{
+}
+
+void Launcher::cleanup()
+{
+}
+
+bool Launcher::autoPutdataFromArgs()
+{
+	return true;
 }
 
 Launcher::Launcher()
@@ -115,7 +152,8 @@ void imp_Launcher_Deleter::operator()(imp_Launcher * p) const
 	delete p;
 }
 
-void catchArg(int argc, char** argv, key_function isKey, std::vector<ArgInfo>& des)
+
+void catchArg(int argc, char** argv, key_function isKey,vector<ArgInfo>& des)
 {
 	int i = 0;
 	std::string lstr;
@@ -134,7 +172,7 @@ void catchArg(int argc, char** argv, key_function isKey, std::vector<ArgInfo>& d
 			else
 			{
 				info.length = i - info.start;
-				des.emplace_back(info);
+				des.push_back(info);
 				//memcpy(des+bg,&info,sizeof(ArgInfo));
 				strcpy(info.name, now.c_str());
 				info.start = i + 1;
@@ -145,6 +183,6 @@ void catchArg(int argc, char** argv, key_function isKey, std::vector<ArgInfo>& d
 	if (info.start >= 0)
 	{
 		info.length = i - info.start;
-		des.emplace_back(info);
+		des.push_back(info);
 	}
 }
