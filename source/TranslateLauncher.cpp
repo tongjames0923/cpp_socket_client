@@ -4,6 +4,7 @@
 
 #include <Application/Components/TranslateLauncher.h>
 #include "Application/App.h"
+#include "Application/Components/UserInterface.h"
 
 void TranslateLauncher::ready(int argc, char **argv)
 {
@@ -38,4 +39,9 @@ int TranslateLauncher::groupSet(const char *argKey, size_t len) const noexcept
             return grp[i];
     }
     return 0;
+}
+
+void TranslateLauncher::cleanup()
+{
+    shutdown();
 }

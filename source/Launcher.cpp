@@ -63,7 +63,7 @@ void Launcher::Start(int argc, char **argv)
     {
         imp.m_functionMaper[info.name](&imp);
     }
-
+    cleanup();
 }
 
 void Launcher::putData(const std::string &dataName, void *data, size_t length) noexcept

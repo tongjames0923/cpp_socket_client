@@ -18,7 +18,7 @@ public:
 
 protected:
     void ready(int argc, char **argv) override;
-    
+    void cleanup() override;
 };
 
 #endif //SOCKET_CLIENT_TRANSLATELAUNCHER_H

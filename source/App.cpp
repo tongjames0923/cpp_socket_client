@@ -16,8 +16,10 @@
 #include <thread>
 #include <mutex>
 #include <chrono>
-
+#include "Application/Components/UserInterface.h"
+#include <boost/format.hpp>
 static TranslateLauncher launcher;
+using  boost::format;
 
 void makeLauncher(Launcher **launch)
 {
@@ -149,23 +151,29 @@ namespace Features
             case SUCCESS:
                 d = fun(args);
                 if (d)
-                    cout << "everything went fine!" << endl;
+                    printText("everything went fine!\n");
+                    //cout << "everything went fine!" << endl;
                 else
                 {
-                    cout << "command runing failed!" << endl;
+                    printText("command runing failed!\n");
+                    //cout << "command runing failed!" << endl;
                 }
                 break;
             case NOT_FOUND:
-                cout << "not found the command!" << endl;
+                printText("not found the command!\n");
+               // cout << "not found the command!" << endl;
                 break;
             case INVALID_NEED:
-                cout << "wrong number of arguments!" << endl;
+                printText("wrong number of arguments!\n");
+                //cout << "wrong number of arguments!" << endl;
                 break;
             case FAILED_TO_PICK:
-                cout << "failed to pick the command args!" << endl;
+                printText("failed to pick the command args!\n");
+                //cout << "failed to pick the command args!" << endl;
                 break;
             default:
-                cout << "Unknown Error" << endl;
+                printText("Unknown Error\n");
+                //cout << "Unknown Error" << endl;
                 break;
         }
     }
@@ -187,7 +195,9 @@ namespace Features
                 {
                     for (auto i : nickNames)
                     {
-                        printf("nickName:%s\tip:%s\n", i.first.c_str(), i.second.c_str());
+                        string text="nickName:"+i.first+"\tip:"+i.second+"\n";
+                        printText(text);
+                        //printf("nickName:%s\tip:%s\n", i.first.c_str(), i.second.c_str());
                     }
                     return true;
                 }, TranslateLauncher::cmd_nick, 0, owner);
@@ -211,11 +221,12 @@ namespace Features
 
     void forH(Launcher *owner)
     {
-        cout << "usage:socket_client run <ip|nickname> <filePath>  [send file to target with port 1997]\n";
-        cout << "usage:socket_client run_port <ip|nickname> <port> <filePath> [send file to target"
-                "with specified port]\n";
-        cout << "usage:socket_client -nick [to show all your nick names]" << endl;
-        cout << "usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
+        string text=string ("usage:socket_client run <ip|nickname> <filePath>  [send file to target with port 1997]\n")+
+         "usage:socket_client run_port <ip|nickname> <port> <filePath> [send file to target"+
+                "with specified port]\n"+
+         "usage:socket_client -nick [to show all your nick names]\n"+
+       "usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
+        printText(text);
     }
 
     void forRun_port(Launcher *owner)
@@ -243,42 +254,42 @@ namespace Features
 
     bool runit()
     {
-        cout << "init..." << endl;
+        printText( "init...\n");
         finish = false;
         chrono::steady_clock::time_point cost_time;
 
         LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
         fileTotal = translator.getTotalFileSize();
-        cout << "connect..." << endl;
+        printText("connect...\n");
         bool connected = translator.Connect();
+
         if (connected)
         {
-            printf("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n", filePath.c_str(), fileTotal / 1024.0, ip.c_str(),
-                   port);
-
+            printText((format("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n")% filePath.c_str()% (fileTotal / 1024.0)% ip.c_str()%port).str());
             translator.runIt([](LocalTranslator *owner)
                              {
-                                 cout << "reading file..." << endl;
+                                 printText( "reading file...\n") ;
                              }, [&cost_time](LocalTranslator *owner)
                              {
-                                 cout << "sending..." << endl;
+                                 printText( "sending...\n");
                                  cost_time = std::chrono::steady_clock::now();
                                  thread td([owner]()
                                            {
-                                               mutex locker;
-                                               unique_lock<mutex> ul(locker);
-                                               condition_variable con;
                                                size_t sent = 0;
                                                size_t old = 0;
                                                double speed = 0;
                                                while (!finish)
                                                {
-                                                   con.wait_for(ul, std::chrono::milliseconds(500));
+                                                   std::this_thread::sleep_for(std::chrono::milliseconds(500));
                                                    sent = owner->getSent();
+                                                   if (sent==0)
+                                                       continue;
                                                    speed = (sent - old) / 1024.0 / 1024.0 * 2;
                                                    old = sent;
-                                                   printf("\rhas sent %zu bytes\tspeed:%.2f mb/s\t progress:%.2f %%",
-                                                          sent, speed, (double) sent / fileTotal * 100.0);
+
+                                                  double persent=( (double) sent / fileTotal);
+                                                   printProgress(25,persent,(format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s")%(persent*100)%
+                                                                                                  sent% speed).str());
                                                }
                                                //cout << "\r100%" << endl;
                                            });
@@ -293,16 +304,12 @@ namespace Features
                                  double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
                                  double speed = round((double) fileTotal / mbs
                                                       / times * 100.0) / 100.0;
-                                 cout.setf(ios::fixed, ios::floatfield);
-                                 cout.precision(2);
-                                 cout << "has sent " << sent / 1024.0f << "kb" << endl <<
-                                      "cost time : " << cost << "s" << endl <<
-                                      "Speed :" << speed << "mb/s" << endl;
+                                 printText((format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n")%(sent / 1024.0f)%cost%speed).str());
                              });
         } else
         {
 
-            cout << "fail to connect" << endl;
+            printText("fail to connect\n");
             return false;
         }
 
