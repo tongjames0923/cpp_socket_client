@@ -76,7 +76,8 @@ void printProgress(size_t progressLen, double progress,const string& append)
     {
         Message msg=Message(code_print_progress);
         msg.setArg1(progressLen);
-        ProgressData data{.progress=progress};
+        ProgressData data;
+        data.progress = progress;
         memcpy(data.text,append.c_str(),append.length());
         data.text[append.length()+1]=0;
         msg.setData(data);
@@ -94,6 +95,14 @@ void loop()
 void shutdown()
 {
     if (_ui_handler&&_ui_handler->getLoop()->isRunning())
+    {
+        _ui_handler->getLoop()->stopLoop();
+    }
+}
+
+void shutdown_WhenEmpty()
+{
+    if (_ui_handler && _ui_handler->getLoop()->isRunning())
     {
         _ui_handler->getLoop()->stopLoop_util_empty();
     }

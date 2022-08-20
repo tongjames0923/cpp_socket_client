@@ -15,7 +15,10 @@ struct MessageDeleter
 {
     constexpr MessageDeleter() noexcept = default;
 
-    void operator()(imp_MESSAGE *p) const;
+    void operator()(imp_MESSAGE* p) const
+    {
+        delete p;
+    }
 };
 
 class Message : public Pointerable<imp_MESSAGE, MessageDeleter>

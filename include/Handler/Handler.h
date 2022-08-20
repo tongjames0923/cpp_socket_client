@@ -13,7 +13,10 @@ struct HandlerDeleter
 {
     constexpr HandlerDeleter() noexcept = default;
 
-    void operator()(imp_HANDLER *p) const;
+    void operator()(imp_HANDLER* p) const
+    {
+        delete p;
+    }
 };
 class Handler:public virtual AutoAlivePointerable<imp_HANDLER,HandlerDeleter>
 {

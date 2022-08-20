@@ -20,10 +20,20 @@ int main(int args, char *argc[])
         Launcher *launcher;
         makeLauncher(&launcher);
         thread run([launcher,args,argc](){
-            launcher->Start(args, argc);
+            try
+            {
+                launcher->Start(args, argc);
+            }
+            catch (const std::exception&err)
+            {
+                printText(err.what());
+                shutdown_WhenEmpty();
+            }
+
         });
         run.detach();
         loop();
+        cout << "\nbye~" << endl;
 
 #endif // !Debug
 

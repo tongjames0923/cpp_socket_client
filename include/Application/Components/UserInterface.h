@@ -11,6 +11,7 @@
 void readyForThread();
 void loop();
 void shutdown();
+void shutdown_WhenEmpty();
 
 
 void printText(const std::string& str);
