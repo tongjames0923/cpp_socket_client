@@ -18,8 +18,11 @@
 #include <chrono>
 #include "Application/Components/UserInterface.h"
 #include <boost/format.hpp>
+#include <atomic>
+#include <cmath>
+
 static TranslateLauncher launcher;
-using  boost::format;
+using boost::format;
 
 void makeLauncher(Launcher **launch)
 {
@@ -161,7 +164,7 @@ namespace Features
                 break;
             case NOT_FOUND:
                 printText("not found the command!\n");
-               // cout << "not found the command!" << endl;
+                // cout << "not found the command!" << endl;
                 break;
             case INVALID_NEED:
                 printText("wrong number of arguments!\n");
@@ -195,7 +198,7 @@ namespace Features
                 {
                     for (auto i : nickNames)
                     {
-                        string text="nickName:"+i.first+"\tip:"+i.second+"\n";
+                        string text = "nickName:" + i.first + "\tip:" + i.second + "\n";
                         printText(text);
                         //printf("nickName:%s\tip:%s\n", i.first.c_str(), i.second.c_str());
                     }
@@ -221,11 +224,12 @@ namespace Features
 
     void forH(Launcher *owner)
     {
-        string text=string ("usage:socket_client run <ip|nickname> <filePath>  [send file to target with port 1997]\n")+
-         "usage:socket_client run_port <ip|nickname> <port> <filePath> [send file to target"+
-                "with specified port]\n"+
-         "usage:socket_client -nick [to show all your nick names]\n"+
-       "usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
+        string text =
+                string("usage:socket_client run <ip|nickname> <filePath>  [send file to target with port 1997]\n") +
+                "usage:socket_client run_port <ip|nickname> <port> <filePath> [send file to target" +
+                "with specified port]\n" +
+                "usage:socket_client -nick [to show all your nick names]\n" +
+                "usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
         printText(text);
     }
 
@@ -250,12 +254,12 @@ namespace Features
                 }, TranslateLauncher::cmd_run_port, 3, owner);
     }
 
-    atomic_bool finish;
+    std::mutex finish_mut;
+    condition_variable finish_control;
 
     bool runit()
     {
-        printText( "init...\n");
-        finish = false;
+        printText("init...\n");
         chrono::steady_clock::time_point cost_time;
 
         LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
@@ -265,38 +269,50 @@ namespace Features
 
         if (connected)
         {
-            printText((format("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n")% filePath.c_str()% (fileTotal / 1024.0)% ip.c_str()%port).str());
+            printText((format("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n") % filePath.c_str() % (fileTotal / 1024.0) %
+                       ip.c_str() % port).str());
             translator.runIt([](LocalTranslator *owner)
                              {
-                                 printText( "reading file...\n") ;
+                                 printText("reading file...\n");
                              }, [&cost_time](LocalTranslator *owner)
                              {
-                                 printText( "sending...\n");
+                                 printText("sending...\n");
                                  cost_time = std::chrono::steady_clock::now();
                                  thread td([owner]()
                                            {
                                                size_t sent = 0;
                                                size_t old = 0;
                                                double speed = 0;
-                                               while (!finish)
+                                               bool done = false;
+                                               std::unique_lock<mutex> lk(finish_mut, defer_lock);
+                                               while (!done)
                                                {
-                                                   std::this_thread::sleep_for(std::chrono::milliseconds(500));
+                                                   lk.lock();
+                                                  cv_status status=  finish_control.wait_for(lk, chrono::milliseconds(500));
+                                                  if(status==cv_status::no_timeout)
+                                                  {
+                                                      done= true;
+                                                  }
                                                    sent = owner->getSent();
-                                                   if (sent==0)
+                                                   if (sent == 0)
                                                        continue;
                                                    speed = (sent - old) / 1024.0 / 1024.0 * 2;
                                                    old = sent;
 
-                                                  double persent=( (double) sent / fileTotal);
-                                                   printProgress(25,persent,(format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s")%(persent*100)%
-                                                                                                  sent% speed).str());
+                                                   double persent = ((double) sent / fileTotal);
+                                                   printProgress(25, persent,
+                                                                 (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
+                                                                  (persent * 100) %
+                                                                  sent % speed).str());
+                                                   lk.unlock();
                                                }
                                                //cout << "\r100%" << endl;
                                            });
                                  td.detach();
                              }, [&cost_time](LocalTranslator *owner)
                              {
-                                 finish = true;
+                                 finish_control.notify_all();
+
                                  auto edtime = std::chrono::steady_clock::now();
                                  double cost = chrono::duration<double>(edtime - cost_time).count();
                                  size_t sent = owner->getSent();
@@ -304,7 +320,11 @@ namespace Features
                                  double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
                                  double speed = round((double) fileTotal / mbs
                                                       / times * 100.0) / 100.0;
-                                 printText((format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n")%(sent / 1024.0f)%cost%speed).str());
+                                 lock_guard<mutex> gard(finish_mut);
+                                 {
+                                     printText((format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n") %
+                                                (sent / 1024.0f) % cost % speed).str());
+                                 }
                              });
         } else
         {

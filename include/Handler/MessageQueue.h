@@ -6,6 +6,7 @@
 #define MESSAGEQUEUE_H
 
 #include "Pointerable.hpp"
+#include <functional>
 using delay_time = long long int;
 class Message;
 class imp_MESSAGEQUEUE;
@@ -21,8 +22,8 @@ public:
     void enqueue(const Message &msg, delay_time delay);
     void enqueue(Message&& msg,delay_time delay);
     Message next();
-
-    bool isEmpty() const;
+    void setOnEmptyFunction(std::function<void()> f);
+    bool isEmpty();
 
     MessageQueue();
 

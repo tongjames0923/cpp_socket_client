@@ -8,10 +8,11 @@
 #include "Handler/Handler.h"
 #include <memory>
 #include <iostream>
+#include <cstring>
 
 using namespace std;
 unique_ptr<Handler> _ui_handler;
-constexpr const int code_print_text = 0,code_print_progress = 1;
+constexpr const int code_print_text = 0,code_print_progress = 1,code_shutdown=2,code_delay_shutDonw=3;
 constexpr const char _done='*',_undone='-';
 struct ProgressData
 {
@@ -24,7 +25,8 @@ void readyForThread()
     if (!isReady())
     {
         ready();
-        _ui_handler.reset(new Handler([](Message& message){
+        _ui_handler.reset(new Handler());
+        _ui_handler->setHandle([](Message& message){
             size_t  len=message.getArg1();
 
             switch (message.getCode())
@@ -39,7 +41,7 @@ void readyForThread()
                     cout.flush();
                     break;
                 case code_print_progress:
-                   ProgressData data;
+                    ProgressData data;
                     message.getData(&data);
                     printf("\r[");
                     for(int i=0;i<data.progress*len;++i)
@@ -54,8 +56,14 @@ void readyForThread()
                     printf("%s",data.text);
                     fflush(stdout);
                     break;
+                case code_shutdown:
+                    _ui_handler->getLoop()->stopLoop();
+                    break;
+                case code_delay_shutDonw:
+                    _ui_handler->getLoop()->stopLoop_util_empty();
+                    break;
             }
-        }));
+        });
     }
 }
 
@@ -96,14 +104,12 @@ void shutdown()
 {
     if (_ui_handler&&_ui_handler->getLoop()->isRunning())
     {
-        _ui_handler->getLoop()->stopLoop();
+        _ui_handler->sendMsg(Message(code_shutdown),0);
     }
 }
 
 void shutdown_WhenEmpty()
 {
-    if (_ui_handler && _ui_handler->getLoop()->isRunning())
-    {
-        _ui_handler->getLoop()->stopLoop_util_empty();
-    }
+    if (_ui_handler&&_ui_handler->getLoop()->isRunning())
+    _ui_handler->sendMsg(Message(code_delay_shutDonw),100);
 }

@@ -2,7 +2,7 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 #define RELEASE_MODE
-#define VERSION "1.42"
+#define VERSION "1.44"
 
 static constexpr const unsigned long KB = 1024, MB = KB * 1024;
 /// @brief 包长

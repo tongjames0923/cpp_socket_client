@@ -5,6 +5,8 @@
 #include "Backend/imp_Launcher.hpp"
 #include <queue>
 #include <list>
+#include <cstring>
+#include <algorithm>
 
 using namespace std;
 

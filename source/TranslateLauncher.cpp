@@ -3,6 +3,7 @@
 //
 
 #include <Application/Components/TranslateLauncher.h>
+#include <cstring>
 #include "Application/App.h"
 #include "Application/Components/UserInterface.h"
 
@@ -24,7 +25,7 @@ int TranslateLauncher::prioritySet(const char *argKey, size_t len) const noexcep
     int pri[] = {0, 0, 1, 2, 3, 3};
     for (int i = 0; i < 6; ++i)
     {
-        if (strcmp(COMMAND[i], argKey) == 0)
+        if (std::strcmp(COMMAND[i], argKey) == 0)
             return pri[i];
     }
     return 0;
@@ -43,5 +44,6 @@ int TranslateLauncher::groupSet(const char *argKey, size_t len) const noexcept
 
 void TranslateLauncher::cleanup()
 {
-    shutdown();
+    
+    shutdown_WhenEmpty();
 }
