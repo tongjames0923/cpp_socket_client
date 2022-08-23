@@ -38,9 +38,6 @@ size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack
     return total_size;
 }
 
-
-static char b_tmp[pack_Len];
-
 size_t LocalTranslator::runIt(callback startread, callback startsent, callback finish)
 {
     if (startread != nullptr)
@@ -61,11 +58,10 @@ size_t LocalTranslator::getTotalFileSize() const
     return cMyImpl().fi.getFileSize();
 }
 
-std::mutex locker;
+
 
 size_t LocalTranslator::getSent() const
 {
-    lock_guard<mutex> lg(locker);
     size_t r = cMyImpl().hassent;
     return r;
 }
@@ -96,13 +92,13 @@ bool LocalTranslator::prepareData()
         imp.prepared = false;
     }
     bool isok = false;
-    isok = imp.fi.readFile(b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
+    isok = imp.fi.readFile(imp.b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
     {
 #ifdef IMPL_ASIO
         imp._data_q.emplace_back(asio::buffer(b_tmp, per));
 #else
         char *d = new char[per];
-        std::memcpy(d, b_tmp, per);
+        std::memcpy(d,imp.b_tmp, per);
         imp._data_q.emplace_back(std::move(data_(d, per)));
 #endif
         return true;
@@ -119,7 +115,7 @@ size_t LocalTranslator::sendPreparedData()
     }
 
     impl_LocalTranslator &ins = myImpl();
-    size_t headlen = makeHead(ins.fi, b_tmp);
+    size_t headlen = makeHead(ins.fi,ins. b_tmp);
     ins.hassent = 0;
 #ifdef IMPL_ASIO
     auto sendAction = [&ins](asio::mutable_buffer &buf) -> bool
@@ -139,7 +135,7 @@ size_t LocalTranslator::sendPreparedData()
     auto sendAction = [&ins](char *buf, size_t len) -> bool
     {
 
-        size_t sent = ins.client.send(b_tmp, len);
+        size_t sent = ins.client.send(ins.b_tmp, len);
         if (sent != len)
         {
             return false;
@@ -154,7 +150,7 @@ size_t LocalTranslator::sendPreparedData()
     asio::mutable_buffer bf=asio::buffer(b_tmp,headlen);
     sendAction(bf);
 #else
-    sendAction(b_tmp,headlen);
+    sendAction(ins.b_tmp,headlen);
 #endif
     bool sucess = false;
     for (data_ &data :ins._data_q)
@@ -173,6 +169,11 @@ size_t LocalTranslator::sendPreparedData()
 bool LocalTranslator::hasPrepared() const noexcept
 {
     return cMyImpl().prepared;
+}
+
+LocalTranslator::LocalTranslator(LocalTranslator &&other) noexcept
+{
+    LocalTranslator::move(this,std::move(other));
 }
 
 

@@ -11,6 +11,7 @@
 
 #include <vector>
 #include <map>
+#include <queue>
 #include <iostream>
 #include <fstream>
 #include <thread>
@@ -31,9 +32,9 @@ void makeLauncher(Launcher **launch)
 
 constexpr const unsigned SUCCESS = 1, NOT_FOUND = 2, INVALID_NEED = 3, FAILED_TO_PICK = 4;
 
-int pickArg(int cmd, size_t need, std::vector<std::string> &args, Launcher *launcher)
+int pickArg(int cmd, int need, std::vector<std::string> &args, Launcher *launcher)
 {
-    std::string key = TranslateLauncher::COMMAND[cmd];
+    std::string key(TranslateLauncher::COMMAND[cmd]);
     ArgInfo info;
     bool found = launcher->getArgInfo(key, &info);
     if (found)
@@ -43,6 +44,22 @@ int pickArg(int cmd, size_t need, std::vector<std::string> &args, Launcher *laun
             char tmp[1024];
 
             for (int i = 0; i < need; i++)
+            {
+                memset(tmp, 0, 1024);
+                bool su = launcher->getData(launcher->getDefaultArgName(key, i), tmp, 1024);
+                if (!su)
+                    return FAILED_TO_PICK;
+                else
+                {
+                    args.emplace_back(tmp);
+                }
+            }
+            return SUCCESS;
+        } else if (need == -1)
+        {
+            char tmp[1024];
+
+            for (int i = 0; i < info.length; i++)
             {
                 memset(tmp, 0, 1024);
                 bool su = launcher->getData(launcher->getDefaultArgName(key, i), tmp, 1024);
@@ -68,7 +85,7 @@ namespace Features
 
     using namespace std;
 
-    bool runit();
+    bool runit(LocalTranslator &translator);
 
 
     string filePath = "C:\\Users\\Abstergo\\Desktop\\test.zip";
@@ -144,7 +161,7 @@ namespace Features
         }
     }
 
-    void forTool(function<bool(vector<string> &)> fun, int cmd, unsigned len, ::Launcher *owner)
+    void forTool(function<bool(vector<string> &)> fun, int cmd, int len, ::Launcher *owner)
     {
         vector<string> args;
         unsigned r = pickArg(cmd, len, args, owner);
@@ -154,28 +171,28 @@ namespace Features
             case SUCCESS:
                 d = fun(args);
                 if (d)
-                    printText("everything went fine!\n");
+                    UI::printText("everything went fine!\n");
                     //cout << "everything went fine!" << endl;
                 else
                 {
-                    printText("command runing failed!\n");
+                    UI::printText("command runing failed!\n");
                     //cout << "command runing failed!" << endl;
                 }
                 break;
             case NOT_FOUND:
-                printText("not found the command!\n");
+                UI::printText("not found the command!\n");
                 // cout << "not found the command!" << endl;
                 break;
             case INVALID_NEED:
-                printText("wrong number of arguments!\n");
+                UI::printText("wrong number of arguments!\n");
                 //cout << "wrong number of arguments!" << endl;
                 break;
             case FAILED_TO_PICK:
-                printText("failed to pick the command args!\n");
+                UI::printText("failed to pick the command args!\n");
                 //cout << "failed to pick the command args!" << endl;
                 break;
             default:
-                printText("Unknown Error\n");
+                UI::printText("Unknown Error\n");
                 //cout << "Unknown Error" << endl;
                 break;
         }
@@ -199,7 +216,7 @@ namespace Features
                     for (auto i : nickNames)
                     {
                         string text = "nickName:" + i.first + "\tip:" + i.second + "\n";
-                        printText(text);
+                        UI::printText(text);
                         //printf("nickName:%s\tip:%s\n", i.first.c_str(), i.second.c_str());
                     }
                     return true;
@@ -213,12 +230,59 @@ namespace Features
 
         forTool([](vector<string> &args) -> bool
                 {
-                    filePath = args[1];
+                    if (args.size() < 2)
+                    {
+                        UI::printText("wrong number of arguments!\n");
+                        return false;
+                    }
+
                     ip = string(args[0]);
                     if (nickNames.count(ip) > 0)
                         ip = nickNames[ip];
-                    return runit();
-                }, TranslateLauncher::cmd_run, 2, owner);
+                    deque<LocalTranslator> translators;
+                    for (int i = 1; i < args.size(); i++)
+                    {
+                        translators.emplace_back(std::move(LocalTranslator(args[i].c_str(), ip.c_str(), port)));
+                    }
+                    mutex ready_mut;
+                    unique_lock<mutex> lk(ready_mut, defer_lock);
+                    condition_variable ready_control;
+                    int ready_count = -1;
+                    //int now_count=0;
+                    thread ready_data([&translators, &ready_count, &ready_control]()
+                                      {
+                                          mutex tp_lock;
+                                          for (LocalTranslator &lt:translators)
+                                          {
+                                              {
+                                                  lock_guard<mutex> lg(tp_lock);
+                                                  lt.prepareData();
+                                                  ++ready_count;
+                                                  ready_control.notify_one();
+                                              }
+                                          }
+                                      });
+                    ready_data.detach();
+                    for (int i = 0; i < translators.size(); ++i)
+                    {
+                        lk.lock();
+                        ready_control.wait(lk, [&ready_count, &i]()
+                        {
+                            return ready_count >= i;
+                        });
+                        lk.unlock();
+                        if(runit(translators[i]))
+                        {
+                            UI::printText("send success\n\n");
+                        }
+                        else
+                        {
+                            UI::printText("send fail\n\n");
+                        }
+                        this_thread::sleep_for(chrono::milliseconds(200));
+                    }
+                    return true;
+                }, TranslateLauncher::cmd_run, -1, owner);
 
     }
 
@@ -230,7 +294,7 @@ namespace Features
                 "with specified port]\n" +
                 "usage:socket_client -nick [to show all your nick names]\n" +
                 "usage:socket_client -config_nick <nickname> <ip>  [to set nickname for ip]\n";
-        printText(text);
+        UI::printText(text);
     }
 
     void forRun_port(Launcher *owner)
@@ -244,8 +308,8 @@ namespace Features
                         if (nickNames.count(ip) > 0)
                             ip = nickNames[ip];
                         port = atoi(args[1].c_str());
-
-                        return runit();
+                        //NOTE done for it
+                        return false;
                     }
                     catch (...)
                     {
@@ -257,79 +321,100 @@ namespace Features
     std::mutex finish_mut;
     condition_variable finish_control;
 
-    bool runit()
-    {
-        printText("init...\n");
-        chrono::steady_clock::time_point cost_time;
+    chrono::steady_clock::time_point cost_time;
 
-        LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
+    void readingAction(LocalTranslator *owner)
+    {
+        UI::printText("reading file...\n");
+    }
+
+
+    void sendingAction(LocalTranslator *owner)
+    {
+        UI::printText("sending...\n");
+        cost_time = std::chrono::steady_clock::now();
+        thread td([owner]()
+                  {
+                      size_t sent = 0;
+                      size_t old = 0;
+                      double speed = 0;
+                      bool done = false;
+                      std::unique_lock<mutex> lk(finish_mut, defer_lock);
+                      while (!done)
+                      {
+                          lk.lock();
+                          cv_status status = finish_control.wait_for(lk,
+                                                                     chrono::milliseconds(
+                                                                             500));
+                          if (status == cv_status::no_timeout)
+                          {
+                              done = true;
+                          }
+                          sent = owner->getSent();
+                          if (sent == 0)
+                              continue;
+                          speed = (sent - old) / 1024.0 / 1024.0 * 2;
+                          old = sent;
+
+                          double persent = ((double) sent / fileTotal);
+                          UI::printProgress(25, persent,
+                                            (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
+                                             (persent * 100) %
+                                             sent % speed).str());
+                          lk.unlock();
+                      }
+                      //cout << "\r100%" << endl;
+                  });
+        td.detach();
+    }
+
+    void finishAction(LocalTranslator *owner)
+    {
+        finish_control.notify_all();
+        auto edtime = std::chrono::steady_clock::now();
+        double cost = chrono::duration<double>(edtime - cost_time).count();
+        size_t sent = owner->getSent();
+        double times = round(cost * 100.0) / 100.0;
+        double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
+        double speed = round((double) fileTotal / mbs
+                             / times * 100.0) / 100.0;
+        lock_guard<mutex> gard(finish_mut);
+        {
+            UI::printText(
+                    (format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n") %
+                     (sent / 1024.0f) % cost % speed).str());
+        }
+    }
+
+    bool runit(LocalTranslator &translator)
+    {
+        UI::printText("init...\n");
+
         fileTotal = translator.getTotalFileSize();
-        printText("connect...\n");
+        UI::printText("connect...\n");
         bool connected = translator.Connect();
 
         if (connected)
         {
-            printText((format("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n") % filePath.c_str() % (fileTotal / 1024.0) %
-                       ip.c_str() % port).str());
-            translator.runIt([](LocalTranslator *owner)
-                             {
-                                 printText("reading file...\n");
-                             }, [&cost_time](LocalTranslator *owner)
-                             {
-                                 printText("sending...\n");
-                                 cost_time = std::chrono::steady_clock::now();
-                                 thread td([owner]()
-                                           {
-                                               size_t sent = 0;
-                                               size_t old = 0;
-                                               double speed = 0;
-                                               bool done = false;
-                                               std::unique_lock<mutex> lk(finish_mut, defer_lock);
-                                               while (!done)
-                                               {
-                                                   lk.lock();
-                                                  cv_status status=  finish_control.wait_for(lk, chrono::milliseconds(500));
-                                                  if(status==cv_status::no_timeout)
-                                                  {
-                                                      done= true;
-                                                  }
-                                                   sent = owner->getSent();
-                                                   if (sent == 0)
-                                                       continue;
-                                                   speed = (sent - old) / 1024.0 / 1024.0 * 2;
-                                                   old = sent;
+            UI::printText(
+                    (format("file=%s\tfile_size=%.3lf kb \t ip=%s:%d\n") % filePath.c_str() % (fileTotal / 1024.0) %
+                     ip.c_str() % port).str());
+            if (!translator.hasPrepared())
+            {
+                translator.runIt(readingAction, sendingAction, finishAction);
+            } else
+            {
+//                readingAction(&translator);
+//                translator.prepareData();
+                sendingAction(&translator);
+                translator.sendPreparedData();
+                finishAction(&translator);
+            }
 
-                                                   double persent = ((double) sent / fileTotal);
-                                                   printProgress(25, persent,
-                                                                 (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
-                                                                  (persent * 100) %
-                                                                  sent % speed).str());
-                                                   lk.unlock();
-                                               }
-                                               //cout << "\r100%" << endl;
-                                           });
-                                 td.detach();
-                             }, [&cost_time](LocalTranslator *owner)
-                             {
-                                 finish_control.notify_all();
-
-                                 auto edtime = std::chrono::steady_clock::now();
-                                 double cost = chrono::duration<double>(edtime - cost_time).count();
-                                 size_t sent = owner->getSent();
-                                 double times = round(cost * 100.0) / 100.0;
-                                 double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
-                                 double speed = round((double) fileTotal / mbs
-                                                      / times * 100.0) / 100.0;
-                                 lock_guard<mutex> gard(finish_mut);
-                                 {
-                                     printText((format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n") %
-                                                (sent / 1024.0f) % cost % speed).str());
-                                 }
-                             });
         } else
         {
 
-            printText("fail to connect\n");
+            UI::printText("fail to connect\n");
             return false;
         }
 

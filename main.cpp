@@ -12,9 +12,9 @@ using namespace std;
 
 int main(int args, char *argc[])
 {
-    cout<<sizeof(std::map<std::string, ArgData>)<<endl;
+    //cout<<sizeof(std::map<std::string, ArgData>)<<endl;
     Features::readConfig();
-    readyForThread();
+    UI::readyForThread();
     try
     {
         printf("version:%s\t detail:%s\n", VERSION, SOCKET_IMPL);
@@ -29,13 +29,13 @@ int main(int args, char *argc[])
             }
             catch (const std::exception&err)
             {
-                printText(err.what());
-                shutdown_WhenEmpty();
+                UI::printText(err.what());
+                UI::shutdown_WhenEmpty();
             }
 
         });
         run.detach();
-        loop();
+        UI::loop();
         cout << "\nbye~" << endl;
 
 #endif // !Debug

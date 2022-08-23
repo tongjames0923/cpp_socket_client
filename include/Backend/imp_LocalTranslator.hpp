@@ -14,22 +14,25 @@
 
 using data_ = asio::mutable_buffer;
 #else
+
 struct data_
-    {
+{
 public:
-        std::unique_ptr<char[]> data;
-        size_t len;
+    std::unique_ptr<char[]> data;
+    size_t len;
 
-        data_(char *d, size_t l)
-        {
-            data.reset(d);
-            len = l;
-        }
-        data_()
-        {
+    data_(char *d, size_t l)
+    {
+        data.reset(d);
+        len = l;
+    }
 
-        }
-    };
+    data_()
+    {
+
+    }
+};
+
 #endif
 
 class impl_LocalTranslator
@@ -42,9 +45,11 @@ public:
                  size_t should, size_t
                  sent)>;
     std::vector<data_> _data_q;
-    bool prepared=false;
+    atomic_bool prepared;
+    char b_tmp[pack_Len];
+    std::mutex locker;
     impl_fileinfo fi;
-    size_t hassent = 0;
+    atomic_ulong hassent;
     impl_SocketClient client;
 };
 

@@ -8,14 +8,17 @@
 #include <cstdio>
 #include <string>
 
-void readyForThread();
-void loop();
-void shutdown();
-void shutdown_WhenEmpty();
+namespace UI
+{
+    void readyForThread();
+    void loop();
+    void shutdown();
+    void shutdown_WhenEmpty();
 
 
-void printText(const std::string& str);
-void printProgress(size_t progressLen, double progress,const std::string& append);
+    void printText(const std::string& str);
+    void printProgress(size_t progressLen, double progress,const std::string& append);
+};
 
 
 

@@ -36,6 +36,7 @@ public:
     /// @param ip  发送ip
     /// @param port 发送端口
     LocalTranslator(const char *filePath, const char *ip, unsigned int port);
+    LocalTranslator(LocalTranslator&& other)noexcept;
 
     ~LocalTranslator();
 
