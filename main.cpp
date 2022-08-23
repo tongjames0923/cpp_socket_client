@@ -5,11 +5,14 @@
 #include "Application/config.h"
 #include "Application/Components/UserInterface.h"
 #include <thread>
+#include <map>
 
 using namespace std;
 
+
 int main(int args, char *argc[])
 {
+    cout<<sizeof(std::map<std::string, ArgData>)<<endl;
     Features::readConfig();
     readyForThread();
     try

@@ -58,7 +58,6 @@ public:
         return self->m_impl.operator bool();
     }
 private:
-
     std::unique_ptr<IMP,DEL> m_impl = nullptr;
 protected:
 

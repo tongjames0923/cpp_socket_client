@@ -57,6 +57,11 @@ public:
 
     using callback = std::function<void(LocalTranslator *owner)>;
 
+    bool prepareData();
+    bool hasPrepared()const noexcept;
+
+    size_t sendPreparedData();
+
     /// @brief 运行
     /// @return 传输成功的总数据
     size_t runIt(callback startread = nullptr, callback startsent = nullptr, callback finish = nullptr);

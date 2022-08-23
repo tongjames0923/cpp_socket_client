@@ -36,6 +36,7 @@ public:
     using imp_ArgFunction = std::function<void(imp_Launcher *self)>;
     using functionMaper = std::map<std::string, imp_ArgFunction>;
     using dataMapper = std::map<std::string, ArgData>;
+
     dataMapper m_dataMapper;
     functionMaper m_functionMaper;
     std::map<std::string, ArgInfo> m_infos;

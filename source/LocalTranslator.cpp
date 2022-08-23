@@ -43,101 +43,14 @@ static char b_tmp[pack_Len];
 
 size_t LocalTranslator::runIt(callback startread, callback startsent, callback finish)
 {
-    impl_LocalTranslator &ins = myImpl();
-
-#ifdef IMPL_ASIO
-    auto sendAction = [&ins](asio::mutable_buffer &buf) -> bool
-    {
-        size_t sent = ins.client.send(buf);
-        if (sent != buf.size())
-        {
-            return false;
-
-        } else
-        {
-            ins.hassent += sent;
-            return true;
-        }
-    };
-    using data_ = asio::mutable_buffer;
-#else
-    auto sendAction = [&ins](char *buf, size_t len) -> bool
-    {
-
-        size_t sent = ins.client.send(b_tmp, len);
-        if (sent != len)
-        {
-            return false;
-        } else
-        {
-            ins.hassent += sent;
-            return true;
-        }
-    };
-    struct data_
-    {
-        std::unique_ptr<char[]> data;
-        size_t len;
-
-        data_(char *d, size_t l)
-        {
-            data.reset(d);
-            len = l;
-        }
-    };
-#endif
-
-    vector<data_> _data_q;
-    bool isok;
-    impl_LocalTranslator &imp = myImpl();
     if (startread != nullptr)
-    {
         startread(this);
-    }
-    isok = imp.fi.readFile(b_tmp, pack_Len, [&_data_q](const int &pks, const size_t &per, const size_t &total) -> bool
-    {
-#ifdef IMPL_ASIO
-        _data_q.emplace_back(data_(b_tmp, per));
-#else
-        char *d = new char[per];
-        std::memcpy(d, b_tmp, per);
-        _data_q.emplace_back(std::move(data_(d, per)));
-#endif
-        return true;
-    });
-    if (isok)
-    {
-        if (startsent != nullptr)
-        {
-            startsent(this);
-        }
-        size_t ls = makeHead(cMyImpl().fi, b_tmp);
-#ifdef IMPL_ASIO
-        auto bf = asio::buffer(b_tmp, ls);
-        sendAction(bf);
-#else
-        sendAction(b_tmp, ls);
-#endif
-        for (data_ &d : _data_q)
-        {
-#ifdef IMPL_ASIO
-            sendAction(d);
-#else
-            sendAction(d.data.get(), d.len);
-#endif
-
-        }
-    } else
-    {
-        return -1;
-    }
-    if (finish != nullptr)
-    {
+    prepareData();
+    if(startsent!= nullptr)
+        startsent(this);
+    size_t r= sendPreparedData();
+    if(finish!= nullptr)
         finish(this);
-    }
-    size_t r = cMyImpl().hassent;
-
-    myImpl().hassent = 0;
     return r;
 }
 
@@ -172,6 +85,94 @@ bool LocalTranslator::Connect()
 {
     bool con = myImpl().client.connect();
     return con;
+}
+
+bool LocalTranslator::prepareData()
+{
+    impl_LocalTranslator &imp = myImpl();
+    if (imp.prepared)
+    {
+        imp._data_q.clear();
+        imp.prepared = false;
+    }
+    bool isok = false;
+    isok = imp.fi.readFile(b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
+    {
+#ifdef IMPL_ASIO
+        imp._data_q.emplace_back(asio::buffer(b_tmp, per));
+#else
+        char *d = new char[per];
+        std::memcpy(d, b_tmp, per);
+        imp._data_q.emplace_back(std::move(data_(d, per)));
+#endif
+        return true;
+    });
+    imp.prepared = isok;
+    return isok;
+}
+
+size_t LocalTranslator::sendPreparedData()
+{
+    if (!hasPrepared())
+    {
+        throw std::runtime_error("file was not prepared for send");
+    }
+
+    impl_LocalTranslator &ins = myImpl();
+    size_t headlen = makeHead(ins.fi, b_tmp);
+    ins.hassent = 0;
+#ifdef IMPL_ASIO
+    auto sendAction = [&ins](asio::mutable_buffer &buf) -> bool
+    {
+        size_t sent = ins.client.send(buf);
+        if (sent != buf.size())
+        {
+            return false;
+
+        } else
+        {
+            ins.hassent += sent;
+            return true;
+        }
+    };
+#else
+    auto sendAction = [&ins](char *buf, size_t len) -> bool
+    {
+
+        size_t sent = ins.client.send(b_tmp, len);
+        if (sent != len)
+        {
+            return false;
+        } else
+        {
+            ins.hassent += sent;
+            return true;
+        }
+    };
+#endif
+#ifdef IMPL_ASIO
+    asio::mutable_buffer bf=asio::buffer(b_tmp,headlen);
+    sendAction(bf);
+#else
+    sendAction(b_tmp,headlen);
+#endif
+    bool sucess = false;
+    for (data_ &data :ins._data_q)
+    {
+#ifdef IMPL_ASIO
+        sucess = sendAction(data);
+#else
+        sucess=sendAction(data.data.get(),data.len);
+#endif
+        if (!sucess)
+            break;
+    }
+    return ins.hassent;
+}
+
+bool LocalTranslator::hasPrepared() const noexcept
+{
+    return cMyImpl().prepared;
 }
 
 
