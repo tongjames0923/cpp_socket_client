@@ -87,17 +87,21 @@ namespace Features
 
     bool runit(LocalTranslator &translator);
 
+    std::mutex finish_mut;
+    condition_variable finish_control;
+
+    chrono::steady_clock::time_point cost_time;
 
     string filePath = "C:\\Users\\Abstergo\\Desktop\\test.zip";
     size_t fileTotal;
     unsigned port = 1997;
     string ip = "127.0.0.1";
-    string config_file = "config.txt";
-    map<string, string> nickNames;
+    static const string config_file = "config.txt";
+    static map<string, string> nickNames;
 
-    string config_NICKNAME = "nickname";
-    string config_NICKNAME_NICK = "nick";
-    string config_NICKNAME_IP = "ip";
+    static const string config_NICKNAME = "nickname";
+    static const string config_NICKNAME_NICK = "nick";
+    static const string config_NICKNAME_IP = "ip";
 
 
     void outPutConfig()
@@ -225,6 +229,51 @@ namespace Features
     }
 
 
+    bool multiRun(deque<LocalTranslator>& translators)
+    {
+        mutex ready_mut;
+        unique_lock<mutex> lk(ready_mut, defer_lock);
+        condition_variable ready_control;
+        int ready_count = -1;
+        //int now_count=0;
+        thread ready_data([&translators, &ready_count, &ready_control]()
+                          {
+                              mutex tp_lock;
+                              for (LocalTranslator &lt:translators)
+                              {
+                                  {
+                                      lock_guard<mutex> lg(tp_lock);
+                                      lt.prepareData();
+                                      ++ready_count;
+                                      ready_control.notify_one();
+                                  }
+                              }
+                          });
+        ready_data.detach();
+        bool isok=true;
+        for (int i = 0; i < translators.size(); ++i)
+        {
+            lk.lock();
+            ready_control.wait(lk, [&ready_count, &i]()
+            {
+                return ready_count >= i;
+            });
+            lk.unlock();
+            if(runit(translators[i]))
+            {
+                UI::printText("send success\n\n");
+            }
+            else
+            {
+                UI::printText("send fail\n\n");
+                isok= false;
+            }
+            this_thread::sleep_for(chrono::milliseconds(200));
+        }
+        return isok;
+    }
+
+
     void forRun(Launcher *owner)
     {
 
@@ -244,44 +293,8 @@ namespace Features
                     {
                         translators.emplace_back(std::move(LocalTranslator(args[i].c_str(), ip.c_str(), port)));
                     }
-                    mutex ready_mut;
-                    unique_lock<mutex> lk(ready_mut, defer_lock);
-                    condition_variable ready_control;
-                    int ready_count = -1;
-                    //int now_count=0;
-                    thread ready_data([&translators, &ready_count, &ready_control]()
-                                      {
-                                          mutex tp_lock;
-                                          for (LocalTranslator &lt:translators)
-                                          {
-                                              {
-                                                  lock_guard<mutex> lg(tp_lock);
-                                                  lt.prepareData();
-                                                  ++ready_count;
-                                                  ready_control.notify_one();
-                                              }
-                                          }
-                                      });
-                    ready_data.detach();
-                    for (int i = 0; i < translators.size(); ++i)
-                    {
-                        lk.lock();
-                        ready_control.wait(lk, [&ready_count, &i]()
-                        {
-                            return ready_count >= i;
-                        });
-                        lk.unlock();
-                        if(runit(translators[i]))
-                        {
-                            UI::printText("send success\n\n");
-                        }
-                        else
-                        {
-                            UI::printText("send fail\n\n");
-                        }
-                        this_thread::sleep_for(chrono::milliseconds(200));
-                    }
-                    return true;
+
+                    return multiRun(translators);
                 }, TranslateLauncher::cmd_run, -1, owner);
 
     }
@@ -308,8 +321,12 @@ namespace Features
                         if (nickNames.count(ip) > 0)
                             ip = nickNames[ip];
                         port = atoi(args[1].c_str());
-                        //NOTE done for it
-                        return false;
+
+                        LocalTranslator translator(filePath.c_str(),ip.c_str(),port);
+                        deque<LocalTranslator> dq;
+                        dq.emplace_back(std::move(translator));
+
+                        return multiRun(dq);
                     }
                     catch (...)
                     {
@@ -318,10 +335,7 @@ namespace Features
                 }, TranslateLauncher::cmd_run_port, 3, owner);
     }
 
-    std::mutex finish_mut;
-    condition_variable finish_control;
 
-    chrono::steady_clock::time_point cost_time;
 
     void readingAction(LocalTranslator *owner)
     {

@@ -58,6 +58,10 @@ public:
 
     using callback = std::function<void(LocalTranslator *owner)>;
 
+    std::string getIp()const noexcept;
+    int getPort()const noexcept;
+
+
     bool prepareData();
     bool hasPrepared()const noexcept;
 

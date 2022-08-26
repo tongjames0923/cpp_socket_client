@@ -176,6 +176,16 @@ LocalTranslator::LocalTranslator(LocalTranslator &&other) noexcept
     LocalTranslator::move(this,std::move(other));
 }
 
+std::string LocalTranslator::getIp() const noexcept
+{
+    return cMyImpl().client.getIP();
+}
+
+int LocalTranslator::getPort() const noexcept
+{
+    return cMyImpl().client.getPort();
+}
+
 
 void imp_TranslatorDeleter::operator()(impl_LocalTranslator *p) const
 {
