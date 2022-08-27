@@ -14,6 +14,7 @@ int main(int args, char *argc[])
 {
     //cout<<sizeof(std::map<std::string, ArgData>)<<endl;
     Features::readConfig();
+    Features::readRecord();
     UI::readyForThread();
     try
     {

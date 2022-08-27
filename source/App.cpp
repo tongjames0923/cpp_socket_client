@@ -8,7 +8,6 @@
 #include "Application/Components/LocalTranslator.h"
 #include <memory>
 #include "Backend/imp_Launcher.hpp"
-
 #include <vector>
 #include <map>
 #include <queue>
@@ -21,6 +20,7 @@
 #include <boost/format.hpp>
 #include <atomic>
 #include <cmath>
+#include <TranslateRecorder.h>
 
 static TranslateLauncher launcher;
 using boost::format;
@@ -31,6 +31,7 @@ void makeLauncher(Launcher **launch)
 }
 
 constexpr const unsigned SUCCESS = 1, NOT_FOUND = 2, INVALID_NEED = 3, FAILED_TO_PICK = 4;
+
 
 int pickArg(int cmd, int need, std::vector<std::string> &args, Launcher *launcher)
 {
@@ -85,12 +86,13 @@ namespace Features
 
     using namespace std;
 
-    bool runit(LocalTranslator &translator);
 
     std::mutex finish_mut;
     condition_variable finish_control;
 
     chrono::steady_clock::time_point cost_time;
+
+    bool runit(int ids, LocalTranslator &translator);
 
     string filePath = "C:\\Users\\Abstergo\\Desktop\\test.zip";
     size_t fileTotal;
@@ -98,11 +100,45 @@ namespace Features
     string ip = "127.0.0.1";
     static const string config_file = "config.txt";
     static map<string, string> nickNames;
-
     static const string config_NICKNAME = "nickname";
     static const string config_NICKNAME_NICK = "nick";
     static const string config_NICKNAME_IP = "ip";
+    static const string record_file = "records.txt";
+    TranslateRecorder recorder;
 
+
+    static string readJsonFromFile(string file)
+    {
+        char bf[512];
+        ifstream s(file, ios_base::in);
+        if (!s.is_open())
+            return "";
+        stringstream str;
+        while (!s.eof())
+        {
+            s >> bf;
+            str << bf;
+        }
+        string content = str.str();
+        s.close();
+        return content;
+    }
+
+    static bool writeToFile(string content, string file)
+    {
+        try
+        {
+            std::ofstream out(file.c_str());
+            if (!out.is_open())
+                return false;
+            out << content;
+            out.close();
+            return true;
+        } catch (...)
+        {
+            return false;
+        }
+    }
 
     void outPutConfig()
     {
@@ -115,9 +151,7 @@ namespace Features
             cJSON_AddStringToObject(obj, config_NICKNAME_IP.c_str(), i.second.c_str());
             cJSON_AddItemToArray(nick, obj);
         }
-        std::ofstream out(config_file.c_str());
-        out << cJSON_Print(root);
-        out.close();
+        writeToFile(cJSON_Print(root), config_file);
         cJSON_free(root);
     }
 
@@ -126,18 +160,7 @@ namespace Features
         cJSON *root = NULL;
         try
         {
-            char bf[512];
-            ifstream s(config_file, ios_base::in);
-            if (!s.is_open())
-                return;
-            stringstream str;
-            while (!s.eof())
-            {
-                s >> bf;
-                str << bf;
-            }
-            string json =
-                    str.str();
+            string json = readJsonFromFile(config_file);
 
             root = cJSON_Parse(json.c_str());
             cJSON *nick = cJSON_GetObjectItem(root, config_NICKNAME.c_str());
@@ -229,13 +252,19 @@ namespace Features
     }
 
 
-    bool multiRun(deque<LocalTranslator>& translators)
+    bool multiRun(deque<LocalTranslator> &translators)
     {
         mutex ready_mut;
         unique_lock<mutex> lk(ready_mut, defer_lock);
         condition_variable ready_control;
         int ready_count = -1;
         //int now_count=0;
+        vector<int> ids;
+        for (LocalTranslator &lc:translators)
+        {
+            ids.push_back(recorder.pushRecord(&lc));
+        }
+        outputRecord();
         thread ready_data([&translators, &ready_count, &ready_control]()
                           {
                               mutex tp_lock;
@@ -250,7 +279,7 @@ namespace Features
                               }
                           });
         ready_data.detach();
-        bool isok=true;
+        bool isok = true;
         for (int i = 0; i < translators.size(); ++i)
         {
             lk.lock();
@@ -259,14 +288,15 @@ namespace Features
                 return ready_count >= i;
             });
             lk.unlock();
-            if(runit(translators[i]))
+            if (runit(ids[i], translators[i]))
             {
                 UI::printText("send success\n\n");
-            }
-            else
+                recorder.turnToDone(ids[i]);
+                outputRecord();
+            } else
             {
                 UI::printText("send fail\n\n");
-                isok= false;
+                isok = false;
             }
             this_thread::sleep_for(chrono::milliseconds(200));
         }
@@ -322,7 +352,7 @@ namespace Features
                             ip = nickNames[ip];
                         port = atoi(args[1].c_str());
 
-                        LocalTranslator translator(filePath.c_str(),ip.c_str(),port);
+                        LocalTranslator translator(filePath.c_str(), ip.c_str(), port);
                         deque<LocalTranslator> dq;
                         dq.emplace_back(std::move(translator));
 
@@ -335,6 +365,16 @@ namespace Features
                 }, TranslateLauncher::cmd_run_port, 3, owner);
     }
 
+    void readRecord()
+    {
+        string text = readJsonFromFile(record_file);
+        recorder.import(text);
+    }
+
+    void outputRecord()
+    {
+        writeToFile(recorder.output(), record_file);
+    }
 
 
     void readingAction(LocalTranslator *owner)
@@ -343,11 +383,11 @@ namespace Features
     }
 
 
-    void sendingAction(LocalTranslator *owner)
+    void sendingAction(int ids, LocalTranslator *owner)
     {
         UI::printText("sending...\n");
         cost_time = std::chrono::steady_clock::now();
-        thread td([owner]()
+        thread td([owner, ids]()
                   {
                       size_t sent = 0;
                       size_t old = 0;
@@ -365,6 +405,8 @@ namespace Features
                               done = true;
                           }
                           sent = owner->getSent();
+                          TranslateRecord *rc = recorder.getRecord(ids);
+                          rc->_sent = sent;
                           if (sent == 0)
                               continue;
                           speed = (sent - old) / 1024.0 / 1024.0 * 2;
@@ -392,18 +434,19 @@ namespace Features
         double mbs = round(1024.0 * 1024.0 * 100.0) / 100.0;
         double speed = round((double) fileTotal / mbs
                              / times * 100.0) / 100.0;
-        lock_guard<mutex> gard(finish_mut);
+
+
         {
+            lock_guard<mutex> gard(finish_mut);
             UI::printText(
                     (format("\nhas sent %.2f kb\ncost time :%.2f s\nspeed :%.2f mb/s\n") %
                      (sent / 1024.0f) % cost % speed).str());
         }
     }
 
-    bool runit(LocalTranslator &translator)
+    bool runit(int ids, LocalTranslator &translator)
     {
         UI::printText("init...\n");
-
         fileTotal = translator.getTotalFileSize();
         UI::printText("connect...\n");
         bool connected = translator.Connect();
@@ -415,16 +458,19 @@ namespace Features
                      ip.c_str() % port).str());
             if (!translator.hasPrepared())
             {
-                translator.runIt(readingAction, sendingAction, finishAction);
+                readingAction(&translator);
+                translator.prepareData();
+                sendingAction(ids, &translator);
+                translator.sendPreparedData();
+                finishAction(&translator);
             } else
             {
 //                readingAction(&translator);
 //                translator.prepareData();
-                sendingAction(&translator);
+                sendingAction(ids, &translator);
                 translator.sendPreparedData();
                 finishAction(&translator);
             }
-
         } else
         {
 

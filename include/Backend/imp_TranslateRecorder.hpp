@@ -9,40 +9,11 @@
 #include "cJSON.h"
 using namespace  std;
 
-struct TranslateRecord
-{
-    unsigned long _id;
-    bool _isdone=false;
-    unsigned long _sent=0;
-    char _filePath[128];
-    char _ip[128];
-    int _port;
-    TranslateRecord()=default;
-    TranslateRecord(unsigned long id, bool isdone, unsigned long sent,const char *filePath,const char *ip, int port) : _id(id),
-                                                                                                             _isdone(isdone),
-                                                                                                             _sent(sent),
-                                                                                                             _port(port)
-    {
-        strcpy(_filePath,filePath);
-        strcpy(_ip,ip);
-    }
-    TranslateRecord()=default;
 
-    bool operator==(const TranslateRecord &rhs) const
-    {
-        return _id == rhs._id;
-    }
-    bool operator==(const unsigned long& rhs) const
-    {
-        return _id == rhs;
-    }
-
-
-};
 const char* key_[6]={"id","isdone","sent","path","ip","port"};
 const int _key_id=0,_key_isdone=1,_key_sent=2,_key_path=3,_key_ip=4,_key_port=5;
 
-cJSON * toCjson(const TranslateRecord& rec)
+static cJSON * toCjson(const TranslateRecord& rec)
 {
     cJSON* root= cJSON_CreateObject();
     cJSON_AddBoolToObject(root,key_[_key_isdone],rec._isdone);
@@ -53,10 +24,10 @@ cJSON * toCjson(const TranslateRecord& rec)
     cJSON_AddStringToObject(root,key_[_key_ip],rec._ip);
     return root;
 }
-TranslateRecord jsonToObject(cJSON* obj)
+static TranslateRecord jsonToObject(cJSON* obj)
 {
     TranslateRecord rc;
-    rc._isdone= cJSON_IsBool(cJSON_GetObjectItem(obj,key_[_key_isdone]));
+    rc._isdone= cJSON_IsTrue(cJSON_GetObjectItem(obj,key_[_key_isdone]));
     rc._id= cJSON_GetObjectItem(obj,key_[_key_id])->valueint;
     rc._port= cJSON_GetObjectItem(obj,key_[_key_port])->valueint;
     rc._sent=cJSON_GetObjectItem(obj,key_[_key_sent])->valueint;
@@ -92,20 +63,24 @@ public:
             m_not_done.emplace_back(rc);
         }
     }
-    bool turnDone(unsigned long id)
+    bool turnDone(int id)
     {
-        TranslateRecord* rc= nullptr;
-        for(TranslateRecord& r :m_not_done)
+        bool  hasit= false;
+        list<TranslateRecord>::iterator it=m_not_done.begin();
+        while (it!=m_not_done.end())
         {
-            if(r._id==id)
+            if(it->_id==id)
             {
-                rc=&r;
+                hasit= true;
                 break;
             }
+            ++it;
         }
-        if(rc== nullptr)
+        if(!hasit)
             return false;
-        rc->_isdone= true;
+        it->_isdone= true;
+        m_has_done.emplace_back(*it);
+        m_not_done.erase(it);
         return true;
     }
 
@@ -126,7 +101,7 @@ public:
         }
 
     }
-    TranslateRecord* getRecord(unsigned int id)
+    TranslateRecord* getRecord(int id)
     {
         for(TranslateRecord& r:m_not_done)
         {

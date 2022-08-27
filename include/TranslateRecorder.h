@@ -6,24 +6,75 @@
 #define SOCKET_CLIENT_TRANSLATERECORDER_H
 
 #include "Pointerable.hpp"
+#include <string>
 
 class LocalTranslator;
-struct TranslateRecord;
+
+struct TranslateRecord
+{
+    int _id;
+    bool _isdone = false;
+    int _sent = 0;
+    char _filePath[128];
+    char _ip[128];
+    int _port;
+
+    TranslateRecord() = default;
+
+    TranslateRecord(int id, bool isdone, int sent, const char *filePath, const char *ip, int port) : _id(id),
+                                                                                                     _isdone(isdone),
+                                                                                                     _sent(sent),
+                                                                                                     _port(port)
+    {
+        strcpy(_filePath, filePath);
+        strcpy(_ip, ip);
+    }
+
+    bool operator==(const TranslateRecord &rhs) const
+    {
+        return _id == rhs._id;
+    }
+
+    bool operator==(const int &rhs) const
+    {
+        return _id == rhs;
+    }
+
+
+};
+
 class imp_TranslateRecorder;
 
-class TranslateRecorder:public virtual AutoAlivePointerable<imp_TranslateRecorder>
+struct TranslateRecordDeleter
+{
+    constexpr TranslateRecordDeleter() noexcept = default;
+
+    void operator()(imp_TranslateRecorder *p) const;
+};
+
+
+class TranslateRecorder : public virtual AutoAlivePointerable<imp_TranslateRecorder, TranslateRecordDeleter>
 {
 public:
-    unsigned long pushRecord(LocalTranslator* task);
+    void import(const std::string &json);
 
-    bool turnToDone(unsigned  long id);
+    std::string output() const;
 
-    void getRecord(unsigned id,TranslateRecord* record);
+    int pushRecord(LocalTranslator *task);
 
-    size_t  getNotDoneLength()const;
-    size_t  getDoneLength()const;
-    int getNotDone(TranslateRecord* des,int len);
-    int getDone(TranslateRecord* des,int len);
+    bool turnToDone(int id);
+
+    TranslateRecord *getRecord(int id);
+
+    size_t getNotDoneLength() const;
+
+    size_t getDoneLength() const;
+
+    int getNotDone(TranslateRecord *des, int len);
+
+    int getDone(TranslateRecord *des, int len);
+
+    TranslateRecorder();
 
 };
 

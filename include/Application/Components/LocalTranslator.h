@@ -23,13 +23,6 @@ class LocalTranslator final
         : public virtual None_Copyable, public virtual AutoAlivePointerable<impl_LocalTranslator, imp_TranslatorDeleter>
 {
 public:
-    /// @brief 数据发送回调
-    using callback_data_sent =
-    std::function<bool(char *bf,
-                       size_t should, size_t
-                       sent)>;
-    /// @brief 文件读取回调
-    using callback_file_read = std::function<void(int pks, size_t read)>;
 
     /// @brief 
     /// @param filePath 文件路径
@@ -56,8 +49,6 @@ public:
     /// @return 
     std::string getFileName() const;
 
-    using callback = std::function<void(LocalTranslator *owner)>;
-
     std::string getIp()const noexcept;
     int getPort()const noexcept;
 
@@ -66,10 +57,6 @@ public:
     bool hasPrepared()const noexcept;
 
     size_t sendPreparedData();
-
-    /// @brief 运行
-    /// @return 传输成功的总数据
-    size_t runIt(callback startread = nullptr, callback startsent = nullptr, callback finish = nullptr);
 };
 
 

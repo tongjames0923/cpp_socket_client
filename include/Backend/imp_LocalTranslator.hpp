@@ -18,8 +18,8 @@ using data_ = asio::mutable_buffer;
 struct data_
 {
 public:
-    std::unique_ptr<char[]> data;
-    size_t len;
+    std::unique_ptr<char[]> data= nullptr;
+    size_t len=0;
 
     data_(char *d, size_t l)
     {
@@ -38,16 +38,9 @@ public:
 class impl_LocalTranslator
 {
 public:
-    using imp_callback_data_sent =
-    function<
-            bool(char
-                 *pk,
-                 size_t should, size_t
-                 sent)>;
     std::vector<data_> _data_q;
     atomic_bool prepared;
     char b_tmp[pack_Len];
-    std::mutex locker;
     impl_fileinfo fi;
     atomic_ulong hassent;
     impl_SocketClient client;

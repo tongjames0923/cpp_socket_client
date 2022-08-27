@@ -38,6 +38,11 @@ namespace Features
 
     /// @brief 输出运行配置
     void outPutConfig();
+
+    void readRecord();
+
+    void outputRecord();
+
 }
 
 #endif //SOCKET_CLIENT_APP_H

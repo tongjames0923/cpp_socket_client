@@ -5,8 +5,6 @@
 #include "Application/Components/LocalTranslator.h"
 #include "Application/config.h"
 #include "Backend/imp_LocalTranslator.hpp"
-#include <queue>
-#include <mutex>
 
 using namespace std;
 
@@ -38,18 +36,6 @@ size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack
     return total_size;
 }
 
-size_t LocalTranslator::runIt(callback startread, callback startsent, callback finish)
-{
-    if (startread != nullptr)
-        startread(this);
-    prepareData();
-    if(startsent!= nullptr)
-        startsent(this);
-    size_t r= sendPreparedData();
-    if(finish!= nullptr)
-        finish(this);
-    return r;
-}
 
 
 size_t LocalTranslator::getTotalFileSize() const

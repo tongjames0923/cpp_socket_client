@@ -7,12 +7,22 @@
 #include "Application/Components/LocalTranslator.h"
 #include <chrono>
 
-unsigned long TranslateRecorder::pushRecord(LocalTranslator *task)
+
+void TranslateRecorder::import(const std::string &json)
 {
-    if(task!= nullptr)
+    myImpl().toObject(json);
+
+}
+
+int TranslateRecorder::pushRecord(LocalTranslator *task)
+{
+    if (task != nullptr)
     {
-        unsigned long id=duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-        TranslateRecord rc(id,false,task->getSent(),task->getFileName().c_str(),task->getIp().c_str(),task->getPort());
+        int id =
+                duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() %
+                (int) INT32_MAX;
+        TranslateRecord rc(id, false, task->getSent(), task->getFileName().c_str(), task->getIp().c_str(),
+                           task->getPort());
         myImpl().push(rc);
         return id;
     }
@@ -20,16 +30,15 @@ unsigned long TranslateRecorder::pushRecord(LocalTranslator *task)
     return 0;
 }
 
-bool TranslateRecorder::turnToDone(unsigned long id)
+bool TranslateRecorder::turnToDone(int id)
 {
 
     return myImpl().turnDone(id);
 }
 
-void TranslateRecorder::getRecord(unsigned int id, TranslateRecord *record)
+TranslateRecord *TranslateRecorder::getRecord(int id)
 {
-    TranslateRecord* rc= myImpl().getRecord(id);
-    *record=*rc;
+    return myImpl().getRecord(id);
 }
 
 size_t TranslateRecorder::getNotDoneLength() const
@@ -44,24 +53,39 @@ size_t TranslateRecorder::getDoneLength() const
 
 int TranslateRecorder::getNotDone(TranslateRecord *des, int len)
 {
-    TranslateRecord** rcs=new TranslateRecord*[len];
-    int all=myImpl().getNotDone(rcs,len);
-    for(int i=0;i<all;i++)
+    TranslateRecord **rcs = new TranslateRecord *[len];
+    int all = myImpl().getNotDone(rcs, len);
+    for (int i = 0; i < all; i++)
     {
-        des[i]= *rcs[i];
+        des[i] = *rcs[i];
     }
-    delete []rcs;
+    delete[]rcs;
     return all;
 }
 
 int TranslateRecorder::getDone(TranslateRecord *des, int len)
 {
-    TranslateRecord** rcs=new TranslateRecord*[len];
-    int all=myImpl().getHasDone(rcs,len);
-    for(int i=0;i<all;i++)
+    TranslateRecord **rcs = new TranslateRecord *[len];
+    int all = myImpl().getHasDone(rcs, len);
+    for (int i = 0; i < all; i++)
     {
-        des[i]= *rcs[i];
+        des[i] = *rcs[i];
     }
-    delete rcs;
+    delete[]rcs;
     return all;
+}
+
+std::string TranslateRecorder::output() const
+{
+    return cMyImpl().to_string();
+}
+
+TranslateRecorder::TranslateRecorder()
+{
+
+}
+
+void TranslateRecordDeleter::operator()(imp_TranslateRecorder *p) const
+{
+    delete p;
 }
