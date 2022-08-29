@@ -21,9 +21,10 @@ class MessageQueue:public virtual Pointerable<imp_MESSAGEQUEUE,MessageQueueDelet
 public:
     void enqueue(const Message &msg, delay_time delay);
     void enqueue(Message&& msg,delay_time delay);
-    Message next();
+    Message* next();
+    void cancel()noexcept;
     void setOnEmptyFunction(std::function<void()> f);
-    bool isEmpty();
+    bool isEmpty() const;
 
     MessageQueue();
 

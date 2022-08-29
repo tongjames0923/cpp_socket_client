@@ -8,17 +8,19 @@
 #include "Handler/Handler.h"
 #include <memory>
 #include <iostream>
+#include <atomic>
 #include <cstring>
 
 using namespace std;
 namespace UI
 {
     unique_ptr<Handler> _ui_handler;
-    constexpr const int code_print_text = 0,code_print_progress = 1,code_shutdown=2,code_delay_shutDonw=3;
+    constexpr const int code_print_text = 0,code_print_progress = 1,code_shutdown=2,code_delay_shutdown=3,code_in_progress=4,code_out_progress=5;
     constexpr const char _done='*',_undone='-';
+    atomic_bool _progressing;
     struct ProgressData
     {
-        char text[1024];
+        char text[512];
         double progress;
     };
 
@@ -27,6 +29,7 @@ namespace UI
         if (!isReady())
         {
             ready();
+            _progressing= false;
             _ui_handler.reset(new Handler());
             _ui_handler->setHandle([](Message& message){
                 size_t  len=message.getArg1();
@@ -34,35 +37,48 @@ namespace UI
                 switch (message.getCode())
                 {
                     case code_print_text:
-                        if (len>=1024)
-                            throw std::runtime_error("Invalid message length,max length is 1024");
-                        char text[1024];
-                        message.getData(text,len);
-                        text[len]=0;
-                        printf("%s",text);
-                        fflush(stdout);
+                        if(!_progressing)
+                        {
+                            if (len>=1024)
+                                throw std::runtime_error("Invalid message length,max length is 1024");
+                            char text[1024];
+                            message.getData(text,len);
+                            text[len]=0;
+                            printf("%s",text);
+                            fflush(stdout);
+                        }
+                        else
+                        {
+                            _ui_handler->sendMsg(message,1);
+                        }
+
                         //cout.flush();
                         break;
                     case code_print_progress:
-                        ProgressData data;
-                        message.getData(&data);
-                        printf("\r[");
-                        for(int i=0;i<data.progress*len;++i)
+                        if(_progressing)
                         {
-                            printf("%c",_done);
+                            ProgressData data;
+                            message.getData(&data);
+                            printf("\r[");
+                            for(int i=0;i<data.progress*len;++i)
+                            {
+                                printf("%c",_done);
+                            }
+                            for(int i=data.progress*len;i<len;++i)
+                            {
+                                printf("%c",_undone);
+                            }
+                            printf("] ");
+                            printf("%s",data.text);
+                            fflush(stdout);
                         }
-                        for(int i=data.progress*len;i<len;++i)
-                        {
-                            printf("%c",_undone);
-                        }
-                        printf("] ");
-                        printf("%s",data.text);
-                        fflush(stdout);
+                        else
+                            _ui_handler->sendMsg(message,1);
                         break;
                     case code_shutdown:
                         _ui_handler->getLoop()->stopLoop();
                         break;
-                    case code_delay_shutDonw:
+                    case code_delay_shutdown:
                         _ui_handler->getLoop()->stopLoop_util_empty();
                         break;
                 }
@@ -78,7 +94,7 @@ namespace UI
             msg.setArg1(str.length());
             msg.setData(str.data(),str.length());
             _ui_handler->sendMsg(std::move(msg),0);
-            this_thread::sleep_for(chrono::milliseconds(20));//使得输出较为有序
+            this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }
 
@@ -94,6 +110,7 @@ namespace UI
             data.text[append.length()+1]=0;
             msg.setData(data);
             _ui_handler->sendMsg(std::move(msg),0);
+            this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }
 
@@ -115,7 +132,18 @@ namespace UI
     void shutdown_WhenEmpty()
     {
         if (_ui_handler&&_ui_handler->getLoop()->isRunning())
-            _ui_handler->sendMsg(Message(code_delay_shutDonw),100);
+            _ui_handler->sendMsg(Message(code_delay_shutdown), 100);
+    }
+
+//note 不确定这样的操作是否有益于输出顺序
+    void progressing()
+    {
+        _progressing= true;
+    }
+
+    void outProgressing()
+    {
+        _progressing=false;
     }
 
 }

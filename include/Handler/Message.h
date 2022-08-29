@@ -7,9 +7,11 @@
 
 #include "Pointerable.hpp"
 
+
 class imp_MESSAGE;
 
 class Handler;
+#define MAX_MESSAGE_SIZE 1024
 
 struct MessageDeleter
 {
@@ -33,6 +35,9 @@ public:
 
     void setArg2(int mArg2);
 
+
+#if  defined(MAX_MESSAGE_SIZE)&&MAX_MESSAGE_SIZE>0
+
     void getData(void *des, size_t len);
 
     void setData(const void *data, size_t len);
@@ -47,9 +52,11 @@ public:
     {
         getData(data,sizeof(T));
     }
+    size_t getDataSize() const noexcept;
+#endif
     Message& operator=(Message&& o)noexcept;
     Message(Message&& o)noexcept;
-    size_t getDataSize() const noexcept;
+
 
     Handler *getHandler();
 

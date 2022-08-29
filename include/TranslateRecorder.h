@@ -7,6 +7,7 @@
 
 #include "Pointerable.hpp"
 #include <string>
+#include <cstring>
 
 class LocalTranslator;
 

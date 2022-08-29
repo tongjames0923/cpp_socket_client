@@ -19,14 +19,14 @@ class Handler:public virtual AutoAlivePointerable<imp_HANDLER,HandlerDeleter>
 {
 public:
     using handleAction= std::function<void(Message&)>;
-    void sendMsg( Message& msg,long long timeout);
-    void sendMsg( Message&& msg,long long timeout);
-    void handle(Message& msg);
+    void sendMsg( Message& msg,long long timeout) const;
+    void sendMsg( Message&& msg,long long timeout) const;
+    void handle(Message& msg) const;
     explicit Handler(handleAction h);
     Handler();
     explicit Handler(Loop* loop);
     void setHandle(handleAction h);
-    Loop* getLoop();
+    Loop* getLoop() const;
 };
 
 

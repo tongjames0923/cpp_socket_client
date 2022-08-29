@@ -53,6 +53,7 @@ typedef boost::asio::ip::tcp TCP;
 #include <sstream>
 #include <atomic>
 #include <arpa/inet.h>
+#include <cstring>
 #include "Application/config.h"
 
 #endif

@@ -89,6 +89,7 @@ namespace Features
 
     std::mutex finish_mut;
     condition_variable finish_control;
+    bool need_rem = false;
 
     chrono::steady_clock::time_point cost_time;
 
@@ -373,7 +374,68 @@ namespace Features
 
     void outputRecord()
     {
-        writeToFile(recorder.output(), record_file);
+        if (need_rem)
+        {
+            writeToFile(recorder.output(), record_file);
+        }
+    }
+
+    void forShowHis(Launcher *owner)
+    {
+        forTool([](vector<string> &args)
+                {
+                    int n = recorder.getNotDoneLength();
+                    //NOTE 应该改用智能指针
+                    TranslateRecord *tr = new TranslateRecord[n];
+                    n = recorder.getNotDone(tr, n);
+                    UI::printText("not done History number:" + to_string(n) + "\n");
+                    for (int i = 0; i < n; i++)
+                    {
+                        UI::printText((format("%d. to{%s:%s} sent:%d bytes  file:%s\n") % i % tr[i]._ip % tr[i]._port %
+                                       tr[i]._sent % tr[i]._filePath).str());
+                    }
+                    delete []tr;
+                    n=recorder.getDoneLength();
+                    tr=new TranslateRecord[n];
+                    n=recorder.getDone(tr,n);
+                    UI::printText("done History number:" + to_string(n) + "\n");
+                    for (int i = 0; i < n; i++)
+                    {
+                        UI::printText((format("%d. to{%s:%s} sent:%d bytes  file:%s\n") % i % tr[i]._ip % tr[i]._port %
+                                       tr[i]._sent % tr[i]._filePath).str());
+                    }
+                    delete [] tr;
+                    return true;
+                }, TranslateLauncher::cmd_history, 0, owner);
+    }
+
+    void forRetry(Launcher *owner)
+    {
+        forTool([](vector<string> &args)
+                {
+                    int ls = atoi(args[0].c_str());
+                    if (ls > recorder.getNotDoneLength())
+                        throw runtime_error("out of range for not done task number");
+                    int n = recorder.getNotDoneLength();
+                    if (ls > 0)
+                    {
+                        n = ls;
+                    }
+                    TranslateRecord *tr = new TranslateRecord[n];
+                    n = recorder.getNotDone(tr, n);
+                    deque<LocalTranslator> translators;
+                    for (int i = 0; i < n; i++)
+                    {
+                        translators.emplace_back(std::move(LocalTranslator(tr[i]._filePath, tr[i]._ip, tr[i]._port)));
+                    }
+                    return multiRun(translators);
+                }, TranslateLauncher::cmd_retry, 1, owner);
+
+    }
+
+    void forMem(Launcher *owner)
+    {
+        need_rem = true;
     }
 
 
@@ -394,6 +456,7 @@ namespace Features
                       double speed = 0;
                       bool done = false;
                       std::unique_lock<mutex> lk(finish_mut, defer_lock);
+                      UI::progressing();
                       while (!done)
                       {
                           lk.lock();
@@ -419,6 +482,12 @@ namespace Features
                                              sent % speed).str());
                           lk.unlock();
                       }
+//                      UI::printProgress(25, 1.0,
+//                                        (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
+//                                         (1.0* 100) %
+//                                         sent % speed).str());
+                      UI::outProgressing();
+                      //UI::printText("\n");
                       //cout << "\r100%" << endl;
                   });
         td.detach();

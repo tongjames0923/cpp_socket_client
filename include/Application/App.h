@@ -42,6 +42,10 @@ namespace Features
     void readRecord();
 
     void outputRecord();
+    void forShowHis(Launcher *owner);
+    void forRetry(Launcher *owner);
+    void forMem(Launcher *owner);
+
 
 }
 

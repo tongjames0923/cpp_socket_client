@@ -5,6 +5,7 @@
 #ifndef LOOP_H
 #define LOOP_H
 #include <thread>
+#include <chrono>
 #include "Pointerable.hpp"
 class Message;
 class imp_LOOP;
@@ -14,12 +15,13 @@ class Loop:public virtual AutoAlivePointerable<imp_LOOP>
 {
 public:
     void loop();
+    void loop_intime(size_t mill);
     void enqueue(Message& msg,long long int delay);
     void enqueue(Message&& msg,long long int delay);
     void stopLoop() noexcept;
     void stopLoop_util_empty()noexcept;
-    bool isRunning() const noexcept;
 
+    bool isRunning() const noexcept;
     std::thread::id getThreadId() const noexcept;
     Loop();
 };
