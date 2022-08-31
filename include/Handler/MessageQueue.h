@@ -19,10 +19,8 @@ struct MessageQueueDeleter
 class MessageQueue:public virtual Pointerable<imp_MESSAGEQUEUE,MessageQueueDeleter>
 {
 public:
-    void enqueue(const Message &msg, delay_time delay);
     void enqueue(Message&& msg,delay_time delay);
     void enqueueAt(Message&& msg,delay_time at);
-    void enqueueAt(const Message& msg,delay_time at);
     Message* next();
     void cancel()noexcept;
     void setOnEmptyFunction(std::function<void()> f);

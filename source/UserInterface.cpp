@@ -50,7 +50,7 @@ namespace UI
                         }
                         else
                         {
-                            _ui_handler->sendMsg(message,1);
+                            _ui_handler->sendMsg(std::move(message),1);
                         }
 
                         //cout.flush();
@@ -74,7 +74,7 @@ namespace UI
                             fflush(stdout);
                         }
                         else
-                            _ui_handler->sendMsg(message,1);
+                            _ui_handler->sendMsg(std::move(message),1);
                         break;
                     case code_shutdown:
                         _ui_handler->getLoop()->stopLoop();
