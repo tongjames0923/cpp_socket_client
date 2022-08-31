@@ -9,6 +9,7 @@
 #include <memory>
 #include <iostream>
 #include <atomic>
+#include "Handler/Handler_Config.h"
 #include <cstring>
 
 using namespace std;
@@ -59,7 +60,7 @@ namespace UI
                         {
                             ProgressData data;
                             message.getData(&data);
-                            printf("\r[");
+                            printf("[");
                             for(int i=0;i<data.progress*len;++i)
                             {
                                 printf("%c",_done);
@@ -69,7 +70,7 @@ namespace UI
                                 printf("%c",_undone);
                             }
                             printf("] ");
-                            printf("%s",data.text);
+                            printf("%s\r",data.text);
                             fflush(stdout);
                         }
                         else
@@ -90,10 +91,11 @@ namespace UI
     {
         if (_ui_handler)
         {
+            auto now= Tool::getTimeForNow();
             Message msg=Message(code_print_text);
             msg.setArg1(str.length());
             msg.setData(str.data(),str.length());
-            _ui_handler->sendMsg(std::move(msg),0);
+            _ui_handler->sendMsgAt(std::move(msg),now);
             this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }
@@ -102,6 +104,7 @@ namespace UI
     {
         if (_ui_handler)
         {
+            auto now= Tool::getTimeForNow();
             Message msg=Message(code_print_progress);
             msg.setArg1(progressLen);
             ProgressData data;
@@ -109,7 +112,7 @@ namespace UI
             memcpy(data.text,append.c_str(),append.length());
             data.text[append.length()+1]=0;
             msg.setData(data);
-            _ui_handler->sendMsg(std::move(msg),0);
+            _ui_handler->sendMsgAt(std::move(msg),now);
             this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }

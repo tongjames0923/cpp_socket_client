@@ -7,7 +7,7 @@
 
 #include "Pointerable.hpp"
 #include <functional>
-using delay_time = long long int;
+#include "Handler/Handler_Config.h"
 class Message;
 class imp_MESSAGEQUEUE;
 struct MessageQueueDeleter
@@ -21,6 +21,8 @@ class MessageQueue:public virtual Pointerable<imp_MESSAGEQUEUE,MessageQueueDelet
 public:
     void enqueue(const Message &msg, delay_time delay);
     void enqueue(Message&& msg,delay_time delay);
+    void enqueueAt(Message&& msg,delay_time at);
+    void enqueueAt(const Message& msg,delay_time at);
     Message* next();
     void cancel()noexcept;
     void setOnEmptyFunction(std::function<void()> f);

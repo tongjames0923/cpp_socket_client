@@ -6,12 +6,11 @@
 #define MESSAGE_H
 
 #include "Pointerable.hpp"
-
+#include "Handler/Handler_Config.h"
 
 class imp_MESSAGE;
 
 class Handler;
-#define MAX_MESSAGE_SIZE 1024
 
 struct MessageDeleter
 {

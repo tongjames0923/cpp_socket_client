@@ -5,8 +5,8 @@
 #ifndef LOOP_H
 #define LOOP_H
 #include <thread>
-#include <chrono>
 #include "Pointerable.hpp"
+#include "Handler/Handler_Config.h"
 class Message;
 class imp_LOOP;
 void ready();
@@ -16,8 +16,10 @@ class Loop:public virtual AutoAlivePointerable<imp_LOOP>
 public:
     void loop();
     void loop_intime(size_t mill);
-    void enqueue(Message& msg,long long int delay);
+    void enqueue(const Message& msg,long long int delay);
     void enqueue(Message&& msg,long long int delay);
+    void enqueueAt(const Message& msg,long long int at);
+    void enqueueAt(Message&& msg,long long int at);
     void stopLoop() noexcept;
     void stopLoop_util_empty()noexcept;
 

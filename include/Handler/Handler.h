@@ -6,6 +6,7 @@
 #define HANDLER_H
 #include <functional>
 #include "Pointerable.hpp"
+#include "Handler/Handler_Config.h"
 class Message;
 class Loop;
 class imp_HANDLER;
@@ -18,9 +19,12 @@ struct HandlerDeleter
 class Handler:public virtual AutoAlivePointerable<imp_HANDLER,HandlerDeleter>
 {
 public:
+    static long long int getTimeForNow();
     using handleAction= std::function<void(Message&)>;
     void sendMsg( Message& msg,long long timeout) const;
     void sendMsg( Message&& msg,long long timeout) const;
+    void sendMsgAt(Message&& msg,long long time)const;
+    void sendMsgAt( Message& msg,long long time) const;
     void handle(Message& msg) const;
     explicit Handler(handleAction h);
     Handler();
