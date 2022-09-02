@@ -9,15 +9,10 @@
 #include "Handler/Handler_Config.h"
 class Message;
 class Loop;
-class imp_HANDLER;
-struct HandlerDeleter
-{
-    constexpr HandlerDeleter() noexcept = default;
 
-    void operator()(imp_HANDLER *p) const;
-};
-class Handler:public virtual AutoAlivePointerable<imp_HANDLER,HandlerDeleter>
-{
+
+PIMPL_BEGIN_WITH_DELETER(Handler)
+
 public:
     using handleAction= std::function<void(Message&)>;
 
@@ -29,7 +24,8 @@ public:
     explicit Handler(Loop* loop);
     void setHandle(handleAction h);
     Loop* getLoop() const;
-};
+
+PIMPL_IMPL_END
 
 
 

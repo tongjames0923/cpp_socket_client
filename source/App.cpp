@@ -456,7 +456,7 @@ namespace Features
                       double speed = 0;
                       bool done = false;
                       std::unique_lock<mutex> lk(finish_mut, defer_lock);
-                      UI::progressing();
+                      //UI::progressing();
                       while (!done)
                       {
                           lk.lock();
@@ -482,11 +482,11 @@ namespace Features
                                              sent % speed).str());
                           lk.unlock();
                       }
-//                      UI::printProgress(25, 1.0,
-//                                        (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
-//                                         (1.0* 100) %
-//                                         sent % speed).str());
-                      UI::outProgressing();
+                      UI::printProgress(25, 1.0,
+                                        (format("%.2f%% . has sent %zu bytes\tspeed:%.2f mb/s") %
+                                         (1.0* 100) %
+                                         sent % speed).str());
+                      //UI::outProgressing();
                       //UI::printText("\n");
                       //cout << "\r100%" << endl;
                   });

@@ -8,19 +8,9 @@
 #include "Pointerable.hpp"
 #include "Handler/Handler_Config.h"
 
-class imp_MESSAGE;
-
 class Handler;
 
-struct MessageDeleter
-{
-    constexpr MessageDeleter() noexcept = default;
-
-    void operator()(imp_MESSAGE *p) const;
-};
-
-class Message : public Pointerable<imp_MESSAGE, MessageDeleter>
-{
+PIMPL_BEGIN_WITH_DELETER(Message)
 public:
     int getCode() const;
 
@@ -55,7 +45,8 @@ public:
 #endif
     Message& operator=(Message&& o)noexcept;
     Message(Message&& o)noexcept;
-
+    Message(const Message& ot);
+    Message& operator=(const Message& o);
 
     Handler *getHandler();
 
@@ -66,7 +57,8 @@ public:
     explicit Message(int code);
 
     void setHandler(Handler *mHandler);
+PIMPL_END
 
-};
+
 
 #endif //TESTER_MESSAGE_H

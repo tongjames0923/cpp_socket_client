@@ -9,15 +9,8 @@
 #include <functional>
 #include "Handler/Handler_Config.h"
 class Message;
-class imp_MESSAGEQUEUE;
-struct MessageQueueDeleter
-{
-    constexpr MessageQueueDeleter() noexcept = default;
 
-    void operator()(imp_MESSAGEQUEUE *p) const;
-};
-class MessageQueue:public virtual Pointerable<imp_MESSAGEQUEUE,MessageQueueDeleter>
-{
+PIMPL_BEGIN_WITH_DELETER(MessageQueue)
 public:
     void enqueue(Message&& msg,delay_time delay);
     void enqueueAt(Message&& msg,delay_time at);
@@ -27,8 +20,7 @@ public:
     bool isEmpty() const;
 
     MessageQueue();
-
-};
+PIMPL_END
 
 
 #endif //MESSAGEQUEUE_H

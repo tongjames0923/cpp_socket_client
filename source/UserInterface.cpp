@@ -16,9 +16,11 @@ using namespace std;
 namespace UI
 {
     unique_ptr<Handler> _ui_handler;
-    constexpr const int code_print_text = 0,code_print_progress = 1,code_shutdown=2,code_delay_shutdown=3,code_in_progress=4,code_out_progress=5;
+    constexpr const int code_print_text = 0,code_print_progress = 1,code_shutdown=2,code_delay_shutdown=3;
     constexpr const char _done='*',_undone='-';
-    atomic_bool _progressing;
+    //atomic_bool _progressing;
+    mutex send_right;
+
     struct ProgressData
     {
         char text[512];
@@ -30,7 +32,7 @@ namespace UI
         if (!isReady())
         {
             ready();
-            _progressing= false;
+            //_progressing= false;
             _ui_handler.reset(new Handler());
             _ui_handler->setHandle([](Message& message){
                 size_t  len=message.getArg1();
@@ -38,7 +40,7 @@ namespace UI
                 switch (message.getCode())
                 {
                     case code_print_text:
-                        if(!_progressing)
+                        //if(!_progressing)
                         {
                             if (len>=1024)
                                 throw std::runtime_error("Invalid message length,max length is 1024");
@@ -48,15 +50,12 @@ namespace UI
                             printf("%s",text);
                             fflush(stdout);
                         }
-                        else
-                        {
-                            _ui_handler->sendMsg(std::move(message),1);
-                        }
+
 
                         //cout.flush();
                         break;
                     case code_print_progress:
-                        if(_progressing)
+
                         {
                             ProgressData data;
                             message.getData(&data);
@@ -73,8 +72,7 @@ namespace UI
                             printf("%s\r",data.text);
                             fflush(stdout);
                         }
-                        else
-                            _ui_handler->sendMsg(std::move(message),1);
+
                         break;
                     case code_shutdown:
                         _ui_handler->getLoop()->stopLoop();
@@ -91,12 +89,12 @@ namespace UI
     {
         if (_ui_handler)
         {
-            auto now= Tool::getTimeForNow();
+            lock_guard<mutex> gl(send_right);
             Message msg=Message(code_print_text);
             msg.setArg1(str.length());
             msg.setData(str.data(),str.length());
-            _ui_handler->sendMsgAt(std::move(msg),now);
-            this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
+            _ui_handler->sendMsg(std::move(msg),0);
+            //this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }
 
@@ -104,7 +102,7 @@ namespace UI
     {
         if (_ui_handler)
         {
-            auto now= Tool::getTimeForNow();
+            lock_guard<mutex> gl(send_right);
             Message msg=Message(code_print_progress);
             msg.setArg1(progressLen);
             ProgressData data;
@@ -112,8 +110,8 @@ namespace UI
             memcpy(data.text,append.c_str(),append.length());
             data.text[append.length()+1]=0;
             msg.setData(data);
-            _ui_handler->sendMsgAt(std::move(msg),now);
-            this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
+            _ui_handler->sendMsg(std::move(msg),0);
+           // this_thread::sleep_for(chrono::milliseconds(1));//使得输出较为有序
         }
     }
 
@@ -128,6 +126,7 @@ namespace UI
     {
         if (_ui_handler&&_ui_handler->getLoop()->isRunning())
         {
+            lock_guard<mutex> gl(send_right);
             _ui_handler->sendMsg(Message(code_shutdown),0);
         }
     }
@@ -135,18 +134,10 @@ namespace UI
     void shutdown_WhenEmpty()
     {
         if (_ui_handler&&_ui_handler->getLoop()->isRunning())
+        {
+            lock_guard<mutex> gl(send_right);
             _ui_handler->sendMsg(Message(code_delay_shutdown), 100);
-    }
+        }
 
-//note 不确定这样的操作是否有益于输出顺序
-    void progressing()
-    {
-        _progressing= true;
     }
-
-    void outProgressing()
-    {
-        _progressing=false;
-    }
-
 }

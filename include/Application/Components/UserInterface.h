@@ -14,8 +14,6 @@ namespace UI
     void loop();
     void shutdown();
     void shutdown_WhenEmpty();
-    void progressing();
-    void outProgressing();
 
     void printText(const std::string& str);
     void printProgress(size_t progressLen, double progress,const std::string& append);
