@@ -5,24 +5,28 @@
 size_t FileInfo::getFileSize() const noexcept
 {
 
-    return cMyImpl().getFileSize();
+    return m_impl->getFileSize();
 }
 
 std::string FileInfo::getFileName() const noexcept
 {
-    return cMyImpl().getFileName();
+    return m_impl->getFileName();
 }
 
 bool FileInfo::readFile(char *buffer, size_t bufferSize, fileReadCallback callback)
 {
-    return myImpl().readFile(buffer, bufferSize, callback);
+    return m_impl->readFile(buffer, bufferSize, callback);
 }
 
 FileInfo::FileInfo(const string &path) noexcept
 {
-    Pointerable<impl_fileinfo>::makeAlive(this);
-    myImpl().init(path);
+    PIMPL_INIT(FileInfo);
+    m_impl->init(path);
 }
 
 FileInfo::~FileInfo() = default;
 
+void FileInfoDeleter::operator()(imp_FileInfo *p) const
+{
+    delete p;
+}

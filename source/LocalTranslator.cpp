@@ -11,13 +11,13 @@ using namespace std;
 
 LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port)
 {
-    impl_LocalTranslator &instance = myImpl();
-    instance.client.init(ip, port);
-    instance.fi.init(filePath);
+    m_impl.reset(new imp_LocalTranslator());
+    m_impl->client.init(ip,port);
+    m_impl->fi.init(filePath);
 }
 
 
-size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack_Len)
+size_t makeHead(const imp_FileInfo &info, char *buffer, size_t bufferLen = pack_Len)
 {
     size_t filename_size = info.getFileName().length() + 1;
     size_t file_info_size = sizeof(File_info);
@@ -41,20 +41,20 @@ size_t makeHead(const impl_fileinfo &info, char *buffer, size_t bufferLen = pack
 size_t LocalTranslator::getTotalFileSize() const
 {
 
-    return cMyImpl().fi.getFileSize();
+    return m_impl->fi.getFileSize();
 }
 
 
 
 size_t LocalTranslator::getSent() const
 {
-    size_t r = cMyImpl().hassent;
+    size_t r = m_impl->hassent;
     return r;
 }
 
 std::string LocalTranslator::getFileName() const
 {
-    return cMyImpl().fi.getFileName();
+    return m_impl->fi.getFileName();
 }
 
 
@@ -65,13 +65,13 @@ LocalTranslator::~LocalTranslator()
 
 bool LocalTranslator::Connect()
 {
-    bool con = myImpl().client.connect();
+    bool con = m_impl->client.connect();
     return con;
 }
 
 bool LocalTranslator::prepareData()
 {
-    impl_LocalTranslator &imp = myImpl();
+    imp_LocalTranslator &imp =*m_impl;
     if (imp.prepared)
     {
         imp._data_q.clear();
@@ -100,7 +100,7 @@ size_t LocalTranslator::sendPreparedData()
         throw std::runtime_error("file was not prepared for send");
     }
 
-    impl_LocalTranslator &ins = myImpl();
+    imp_LocalTranslator &ins =*m_impl;
     size_t headlen = makeHead(ins.fi,ins. b_tmp);
     ins.hassent = 0;
 #ifdef IMPL_ASIO
@@ -154,26 +154,24 @@ size_t LocalTranslator::sendPreparedData()
 
 bool LocalTranslator::hasPrepared() const noexcept
 {
-    return cMyImpl().prepared;
+    return m_impl->prepared;
 }
 
 LocalTranslator::LocalTranslator(LocalTranslator &&other) noexcept
 {
-    LocalTranslator::move(this,std::move(other));
+    m_impl=std::move(other.m_impl);
 }
 
 std::string LocalTranslator::getIp() const noexcept
 {
-    return cMyImpl().client.getIP();
+    return m_impl->client.getIP();
 }
 
 int LocalTranslator::getPort() const noexcept
 {
-    return cMyImpl().client.getPort();
+    return m_impl->client.getPort();
 }
-
-
-void imp_TranslatorDeleter::operator()(impl_LocalTranslator *p) const
+void LocalTranslatorDeleter::operator()(imp_LocalTranslator *p) const
 {
     delete p;
 }

@@ -5,9 +5,23 @@
 #include <functional>
 #include "Pointerable.hpp"
 
-class impl_fileinfo;
 
-struct File_info;
+struct File_info final
+{
+    /**
+     * 文件尺寸
+     */
+    size_t filesize;
+    /**
+     * 文件名长度
+     */
+    size_t filename_size;
+
+    File_info() : filesize(0), filename_size(0)
+    {
+    }
+};
+
 
 /**
  * @brief 文件读取回调
@@ -21,14 +35,16 @@ using fileReadCallback = std::function<bool(int packindex, size_t perRead, size_
 /**
  * 文件信息读取类
  */
-class FileInfo final : private virtual Pointerable<impl_fileinfo>, public virtual None_Copyable
-{
+
+PIMPL_BEGIN_WITH_DELETER(FileInfo)
 public:
     /**
      *
      * @param path 文件路径
      */
     explicit FileInfo(const std::string &path) noexcept;
+
+
 
     ~FileInfo();
 
@@ -53,6 +69,6 @@ public:
      * @return 是否读取成功
      */
     bool readFile(char *buffer, size_t bufferSize, fileReadCallback callback);
-};
+PIMPL_END
 
 #endif

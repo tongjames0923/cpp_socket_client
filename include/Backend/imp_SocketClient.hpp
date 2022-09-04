@@ -58,24 +58,23 @@ typedef boost::asio::ip::tcp TCP;
 
 #endif
 
-class impl_SocketClient
-{
+PIMPL_IMPL(SocketClient)
 public:
 #ifdef IMPL_ASIO
 
-    impl_SocketClient() : m_socket(getContext()), m_ip("127.0.0.1"), m_port(1997)
+    imp_SocketClient() : m_socket(getContext()), m_ip("127.0.0.1"), m_port(1997)
     {
     }
 
 #else
 
-    impl_SocketClient() : base(event_base_new())
+    imp_SocketClient() : base(event_base_new())
     {
     }
 
 #endif
 
-    ~impl_SocketClient()
+    ~imp_SocketClient()
     {
         closeSocket();
 #ifndef IMPL_ASIO
@@ -142,7 +141,7 @@ public:
         return this->connected;
     }
 
-    impl_SocketClient &setIp(const std::string &ip)
+    imp_SocketClient &setIp(const std::string &ip)
     {
 
         strcpy(m_ip, ip.c_str());
@@ -150,7 +149,7 @@ public:
         return *this;
     }
 
-    impl_SocketClient &setPort(const unsigned int &port)
+    imp_SocketClient &setPort(const unsigned int &port)
     {
         m_port = port;
         return *this;
@@ -264,7 +263,8 @@ private:
     static void conn_eventcb(struct bufferevent *bev, short events, void *user_data)
     {
 
-        impl_SocketClient *client = (impl_SocketClient *) user_data;
+        imp_SocketClient * client = (imp_SocketClient * )
+        user_data;
         if (events & BEV_EVENT_CONNECTED)
         {
             client->connected = true;
@@ -280,7 +280,8 @@ private:
     static void
     conn_writecb(struct bufferevent *bev, void *user_data)
     {
-        impl_SocketClient *client = (impl_SocketClient *) user_data;
+        imp_SocketClient * client = (imp_SocketClient * )
+        user_data;
         --(client->sends);
         if (client->sends == 0)
         {
@@ -302,7 +303,8 @@ private:
     static void
     conn_readcb(struct bufferevent *bev, void *user_data)
     {
-        impl_SocketClient *client = (impl_SocketClient *) user_data;
+        imp_SocketClient * client = (imp_SocketClient * )
+        user_data;
         size_t ln = evbuffer_get_length(bufferevent_get_input(bev));
         char buffer[singleReadLen];
         while (ln > 0)
@@ -329,7 +331,7 @@ private:
     unsigned int m_port;
     bool connected = false;
 
-};
+PIMPL_IMPL_END
 
 
 #endif //SOCKET_CLIENT_IMP_SOCKETCLIENT_HPP
