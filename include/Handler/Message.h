@@ -27,7 +27,7 @@ public:
 
 #if  defined(MAX_MESSAGE_SIZE)&&MAX_MESSAGE_SIZE>0
 
-    void getData(void *des, size_t len);
+    void getData(void *des, size_t len) const;
 
     void setData(const void *data, size_t len);
 
@@ -37,7 +37,8 @@ public:
         setData(&data, sizeof(T));
     }
     template<class T>
-    void getData(T *data)
+    void getData(T *data)const
+
     {
         getData(data,sizeof(T));
     }

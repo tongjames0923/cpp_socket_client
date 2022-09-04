@@ -8,13 +8,12 @@
 #include <string>
 #include "Pointerable.hpp"
 
-class impl_SocketClient;
 
 /**
  * 端口客户端
  */
-class SocketClient final : public virtual AutoAlivePointerable<impl_SocketClient>, None_Copyable
-{
+
+PIMPL_BEGIN_WITH_DELETER(SocketClient)
 public:
 
     SocketClient();
@@ -82,7 +81,7 @@ public:
     ///关闭连接
     void closeSocket();
 
-};
+PIMPL_END
 
 
 #endif //SOCKET_CLIENT_SOCKETCLIENT_H

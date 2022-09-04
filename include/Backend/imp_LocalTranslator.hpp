@@ -7,6 +7,7 @@
 
 #include <functional>
 #include <vector>
+#include <FileInfo.h>
 #include "imp_FileInfo.hpp"
 #include "imp_SocketClient.hpp"
 
@@ -18,8 +19,8 @@ using data_ = asio::mutable_buffer;
 struct data_
 {
 public:
-    std::unique_ptr<char[]> data= nullptr;
-    size_t len=0;
+    std::unique_ptr<char[]> data = nullptr;
+    size_t len = 0;
 
     data_(char *d, size_t l)
     {
@@ -35,15 +36,15 @@ public:
 
 #endif
 
-class impl_LocalTranslator
-{
+
+PIMPL_IMPL(LocalTranslator)
 public:
     std::vector<data_> _data_q;
     atomic_bool prepared;
     char b_tmp[pack_Len];
-    impl_fileinfo fi;
+    imp_FileInfo fi;
     atomic_ulong hassent;
-    impl_SocketClient client;
-};
+    imp_SocketClient client;
+PIMPL_IMPL_END
 
 #endif //SOCKET_CLIENT_IMP_LOCALTRANSLATOR_HPP

@@ -8,23 +8,12 @@
 #include "Pointerable.hpp"
 #include <functional>
 
-class impl_LocalTranslator;
-
-
-struct imp_TranslatorDeleter
-{
-    constexpr imp_TranslatorDeleter() noexcept = default;
-
-    void operator()(impl_LocalTranslator *p) const;
-};
 
 /// @brief 传输文件封装类
-class LocalTranslator final
-        : public virtual None_Copyable, public virtual AutoAlivePointerable<impl_LocalTranslator, imp_TranslatorDeleter>
-{
+PIMPL_BEGIN_WITH_DELETER(LocalTranslator)
 public:
 
-    /// @brief 
+    /// @brief
     /// @param filePath 文件路径
     /// @param ip  发送ip
     /// @param port 发送端口
@@ -34,19 +23,19 @@ public:
     ~LocalTranslator();
 
     /// @brief 连接socket
-    /// @return 
+    /// @return
     bool Connect();
 
     /// @brief 文件的总大小
-    /// @return 
+    /// @return
     size_t getTotalFileSize() const;
 
     /// @brief 已发送的数据长度
-    /// @return 
+    /// @return
     size_t getSent() const;
 
     /// @brief 当前发送的文件名
-    /// @return 
+    /// @return
     std::string getFileName() const;
 
     std::string getIp()const noexcept;
@@ -57,7 +46,8 @@ public:
     bool hasPrepared()const noexcept;
 
     size_t sendPreparedData();
-};
+PIMPL_END
+
 
 
 #endif //SOCKET_CLIENT_LOCALTRANSLATOR_H

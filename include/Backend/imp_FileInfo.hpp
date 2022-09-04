@@ -8,27 +8,11 @@
 #include <string>
 #include <functional>
 #include <fstream>
+#include "Pointerable.hpp"
 
 using namespace std;
 
-struct File_info final
-{
-    /**
-     * 文件尺寸
-     */
-    size_t filesize;
-    /**
-     * 文件名长度
-     */
-    size_t filename_size;
-
-    File_info() : filesize(0), filename_size(0)
-    {
-    }
-};
-
-class impl_fileinfo
-{
+PIMPL_IMPL(FileInfo)
 public:
     std::ifstream file;
     size_t filesize;
@@ -86,7 +70,6 @@ public:
         file.seekg(cur, ios_base::beg);
         return suc && iscon;
     }
-
-};
+PIMPL_IMPL_END
 
 #endif //SOCKET_CLIENT_IMP_FILEINFO_HPP

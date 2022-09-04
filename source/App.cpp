@@ -385,26 +385,27 @@ namespace Features
         forTool([](vector<string> &args)
                 {
                     int n = recorder.getNotDoneLength();
-                    //NOTE 应该改用智能指针
-                    TranslateRecord *tr = new TranslateRecord[n];
-                    n = recorder.getNotDone(tr, n);
+                    unique_ptr<TranslateRecord[]> tr;
+                    tr.reset(new TranslateRecord[n]);
+                    //TranslateRecord *tr = ;
+                    n = recorder.getNotDone(tr.get(), n);
                     UI::printText("not done History number:" + to_string(n) + "\n");
                     for (int i = 0; i < n; i++)
                     {
                         UI::printText((format("%d. to{%s:%s} sent:%d bytes  file:%s\n") % i % tr[i]._ip % tr[i]._port %
                                        tr[i]._sent % tr[i]._filePath).str());
                     }
-                    delete []tr;
+
                     n=recorder.getDoneLength();
-                    tr=new TranslateRecord[n];
-                    n=recorder.getDone(tr,n);
+                    tr.reset(new TranslateRecord[n]);
+                    n=recorder.getDone(tr.get(),n);
                     UI::printText("done History number:" + to_string(n) + "\n");
                     for (int i = 0; i < n; i++)
                     {
                         UI::printText((format("%d. to{%s:%s} sent:%d bytes  file:%s\n") % i % tr[i]._ip % tr[i]._port %
                                        tr[i]._sent % tr[i]._filePath).str());
                     }
-                    delete [] tr;
+                    //delete [] tr;
                     return true;
                 }, TranslateLauncher::cmd_history, 0, owner);
     }

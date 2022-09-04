@@ -89,7 +89,7 @@ namespace UI
     {
         if (_ui_handler)
         {
-            lock_guard<mutex> gl(send_right);
+            //lock_guard<mutex> gl(send_right);
             Message msg=Message(code_print_text);
             msg.setArg1(str.length());
             msg.setData(str.data(),str.length());
@@ -102,7 +102,7 @@ namespace UI
     {
         if (_ui_handler)
         {
-            lock_guard<mutex> gl(send_right);
+            //lock_guard<mutex> gl(send_right);
             Message msg=Message(code_print_progress);
             msg.setArg1(progressLen);
             ProgressData data;
