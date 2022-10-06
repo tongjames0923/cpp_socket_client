@@ -10,7 +10,7 @@ else ()
     set(boost "/usr/local/include")
 endif ()
 
-if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
     set(DEBUG_MODE DEBUG_MODE)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/runtime)
     link_directories("/usr/local/lib" ${PROJECT_SOURCE_DIR}/lib)

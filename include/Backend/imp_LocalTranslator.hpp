@@ -16,22 +16,43 @@
 using data_ = asio::mutable_buffer;
 #else
 
-struct data_
-{
-public:
+class data_ {
+private:
     std::unique_ptr<char[]> data = nullptr;
     size_t len = 0;
-
-    data_(char *d, size_t l)
+public:
+    explicit data_(size_t l) {
+        setSize(l);
+    }
+    explicit operator char*() noexcept
     {
-        data.reset(d);
-        len = l;
+        return getData();
+    }
+    void setSize(size_t t)
+    {
+        len=t;
+        if(t<=0)
+            data.reset();
+        else
+        data.reset(new char[len]);
+    }
+    size_t getSize()const noexcept
+    {
+        return len;
+    }
+    char* getData()noexcept
+    {
+        return data.get();
     }
 
-    data_()
+    size_t getData(char* des,size_t l)const noexcept
     {
-
+        size_t t=getSize();
+        t=l>=t?t:l;
+        memcpy(des,data.get(),t);
+        return t;
     }
+
 };
 
 #endif

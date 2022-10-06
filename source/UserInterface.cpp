@@ -11,6 +11,7 @@
 #include <atomic>
 #include "Handler/Handler_Config.h"
 #include <cstring>
+#include <mutex>
 
 using namespace std;
 namespace UI

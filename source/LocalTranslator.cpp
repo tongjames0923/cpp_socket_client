@@ -81,11 +81,11 @@ bool LocalTranslator::prepareData()
     isok = imp.fi.readFile(imp.b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
     {
 #ifdef IMPL_ASIO
-        imp._data_q.emplace_back(asio::buffer(b_tmp, per));
+        imp._data_q.emplace_back(asio::buffer(imp.b_tmp, per));
 #else
-        char *d = new char[per];
-        std::memcpy(d,imp.b_tmp, per);
-        imp._data_q.emplace_back(std::move(data_(d, per)));
+        data_ d( per);
+        std::memcpy((char*)d,imp.b_tmp, per);
+        imp._data_q.emplace_back(std::move(d));
 #endif
         return true;
     });
@@ -121,7 +121,7 @@ size_t LocalTranslator::sendPreparedData()
     auto sendAction = [&ins](char *buf, size_t len) -> bool
     {
 
-        size_t sent = ins.client.send(ins.b_tmp, len);
+        size_t sent = ins.client.send(buf, len);
         if (sent != len)
         {
             return false;
@@ -133,7 +133,7 @@ size_t LocalTranslator::sendPreparedData()
     };
 #endif
 #ifdef IMPL_ASIO
-    asio::mutable_buffer bf=asio::buffer(b_tmp,headlen);
+    asio::mutable_buffer bf=asio::buffer(ins.b_tmp,headlen);
     sendAction(bf);
 #else
     sendAction(ins.b_tmp,headlen);
@@ -144,7 +144,7 @@ size_t LocalTranslator::sendPreparedData()
 #ifdef IMPL_ASIO
         sucess = sendAction(data);
 #else
-        sucess=sendAction(data.data.get(),data.len);
+        sucess=sendAction(data.getData(),data.getSize());
 #endif
         if (!sucess)
             break;

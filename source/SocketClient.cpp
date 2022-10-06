@@ -63,7 +63,7 @@ SocketClient::SocketClient()
 
 #ifdef IMPL_ASIO
 
-size_t SocketClient::send(asio::mutable_buffer &buffer)
+size_t SocketClient::send(boost::asio::mutable_buffer &buffer)
 {
     return m_impl->send(buffer);
 }

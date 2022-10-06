@@ -7,11 +7,9 @@
 
 #include <string>
 #include "Pointerable.hpp"
+#include "Application/config.h"
+#include <boost/asio.hpp>
 
-
-/**
- * 端口客户端
- */
 
 PIMPL_BEGIN_WITH_DELETER(SocketClient)
 public:
@@ -68,7 +66,7 @@ public:
 
 #ifdef IMPL_ASIO
 
-    size_t send(asio::mutable_buffer &buffer);
+    size_t send(boost::asio::mutable_buffer &buffer);
 
 #endif
 
@@ -84,4 +82,4 @@ public:
 PIMPL_END
 
 
-#endif //SOCKET_CLIENT_SOCKETCLIENT_H
+#endif

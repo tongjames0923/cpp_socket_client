@@ -7,6 +7,7 @@
 #include <thread>
 #include "Pointerable.hpp"
 #include "Handler/Handler_Config.h"
+#include <functional>
 class Message;
 void ready();
 bool isReady();
