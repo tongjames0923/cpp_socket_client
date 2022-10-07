@@ -22,18 +22,19 @@ int main(int args, char *argc[])
 #ifdef RELEASE_MODE
         Launcher *launcher;
         makeLauncher(&launcher);
-        thread run([launcher,args,argc](){
-            try
-            {
-                launcher->Start(args, argc);
-            }
-            catch (const std::exception&err)
-            {
-                UI::printText(err.what());
-                UI::shutdown_WhenEmpty();
-            }
+        thread run([launcher, args, argc]()
+                   {
+                       try
+                       {
+                           launcher->Start(args, argc);
+                       }
+                       catch (const std::exception &err)
+                       {
+                           UI::printText(err.what());
+                           UI::shutdown_WhenEmpty();
+                       }
 
-        });
+                   });
         run.detach();
         UI::loop();
         cout << "\nbye~" << endl;

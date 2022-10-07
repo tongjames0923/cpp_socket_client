@@ -44,4 +44,4 @@ Loop *getLoop() const;
 
 PIMPL_IMPL_END
 
-#endif // TESTER_HANDLER_H
+#endif

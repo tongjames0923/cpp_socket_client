@@ -17,6 +17,7 @@
 #include <boost/format.hpp>
 #include <cmath>
 #include <TranslateRecorder.h>
+#include "Error.hpp"
 
 static TranslateLauncher launcher;
 using boost::format;
@@ -354,8 +355,7 @@ namespace Features {
     void forRetry(Launcher *owner) {
         forTool([](vector<string> &args) {
             int ls = atoi(args[0].c_str());
-            if (ls > recorder.getNotDoneLength())
-                throw runtime_error("out of range for not done task number");
+            _if_error(ls > recorder.getNotDoneLength(),"out of range for not done task number")
             int n = recorder.getNotDoneLength();
             if (ls > 0) {
                 n = ls;

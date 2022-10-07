@@ -7,6 +7,7 @@
 #include <list>
 #include <cstring>
 #include <algorithm>
+#include <Error.hpp>
 
 using namespace std;
 
@@ -42,13 +43,9 @@ void Launcher::Start(int argc, char **argv)
         size_t ls = strlen(item.name);
         item.priority = prioritySet(item.name, ls);
         int gp = groupSet(item.name, ls);
-        if (gp < 0)
-            throw std::runtime_error("Invalid group number,must need >=0");
+        _if_error(gp < 0,"Invalid group number,must need >=0")
         item.group = gp;
-        if (defaultGroup != -1 && defaultGroup != item.group)
-        {
-            throw std::runtime_error("Incompatible groups commands");
-        }
+        _if_error(defaultGroup != -1 && defaultGroup != item.group,"Incompatible groups commands")
         defaultGroup = gp;
         myImpl().m_infos[item.name] = item;
         if (autoPutdataFromArgs())

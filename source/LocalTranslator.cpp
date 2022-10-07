@@ -5,10 +5,7 @@
 #include "Application/Components/LocalTranslator.h"
 #include "Application/config.h"
 #include "Backend/imp_LocalTranslator.hpp"
-
 using namespace std;
-
-
 LocalTranslator::LocalTranslator(const char *filePath, const char *ip, unsigned int port)
 {
     m_impl.reset(new imp_LocalTranslator());
@@ -22,60 +19,40 @@ size_t makeHead(const imp_FileInfo &info, char *buffer, size_t bufferLen = pack_
     size_t filename_size = info.getFileName().length() + 1;
     size_t file_info_size = sizeof(File_info);
     size_t total_size = file_info_size + filename_size;
-    if (total_size > bufferLen)
-    {
-        throw runtime_error("File name is too long");
-    }
+    _if_error(total_size > bufferLen,"File name is too long")
     File_info ff;
     ff.filesize = info.getFileSize();
     ff.filename_size = filename_size;
-
     memcpy(buffer, &ff, file_info_size);
     memcpy(buffer + file_info_size, info.getFileName().c_str(),
            filename_size);
     return total_size;
 }
-
-
-
-size_t LocalTranslator::getTotalFileSize() const
+size_t LocalTranslator::getTotalFileSize() const noexcept
 {
 
     return m_impl->fi.getFileSize();
 }
-
-
-
-size_t LocalTranslator::getSent() const
+size_t LocalTranslator::getSent() const noexcept
 {
     size_t r = m_impl->hassent;
     return r;
 }
-
-std::string LocalTranslator::getFileName() const
+std::string LocalTranslator::getFileName() const noexcept
 {
     return m_impl->fi.getFileName();
 }
-
-
 LocalTranslator::~LocalTranslator()
-{
-
-}
-
+= default;
 bool LocalTranslator::Connect()
 {
     bool con = m_impl->client.connect();
     return con;
 }
-
 bool LocalTranslator::prepareData()
 {
     imp_LocalTranslator &imp =*m_impl;
-    if (imp.prepared_status==imp_LocalTranslator::preparing)
-    {
-        throw std::runtime_error("object is preparing...");
-    }
+    _if_error(imp.prepared_status==imp_LocalTranslator::preparing,"object is preparing...");
     clear_data();
     imp.prepared_status=imp_LocalTranslator::preparing;
     bool isok = false;
@@ -96,10 +73,7 @@ bool LocalTranslator::prepareData()
 
 size_t LocalTranslator::sendPreparedData()
 {
-    if (getPrepareStatus()!=prepared)
-    {
-        throw std::runtime_error("file was not prepared for send");
-    }
+    _if_error(getPrepareStatus()!=prepared,"file was not prepared for send")
 
     imp_LocalTranslator &ins =*m_impl;
     size_t headlen = makeHead(ins.fi,ins. b_tmp);

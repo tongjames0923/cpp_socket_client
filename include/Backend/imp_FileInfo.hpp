@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 #include <fstream>
+#include <Error.hpp>
 #include "Pointerable.hpp"
 
 using namespace std;
@@ -33,10 +34,7 @@ public:
     void init(const std::string &path)
     {
         file.open(path, ios_base::binary);
-        if (!file.is_open())
-        {
-            throw runtime_error("wrong file Path");
-        }
+        _if_error(!file.is_open(),"wrong file Path at "+path)
         this->filePath = path;
         this->filesize = calFileSize();
     }

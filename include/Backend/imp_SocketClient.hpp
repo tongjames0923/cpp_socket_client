@@ -263,12 +263,13 @@ private:
     static void conn_eventcb(struct bufferevent *bev, short events, void *user_data)
     {
 
-        imp_SocketClient * client = (imp_SocketClient * )
-        user_data;
+        imp_SocketClient *client = (imp_SocketClient *)
+                user_data;
         if (events & BEV_EVENT_CONNECTED)
         {
             client->connected = true;
-        } else if (events & BEV_EVENT_EOF || events & BEV_EVENT_ERROR)
+        }
+        else if (events & BEV_EVENT_EOF || events & BEV_EVENT_ERROR)
         {
             client->connected = false;
         }
@@ -280,8 +281,8 @@ private:
     static void
     conn_writecb(struct bufferevent *bev, void *user_data)
     {
-        imp_SocketClient * client = (imp_SocketClient * )
-        user_data;
+        imp_SocketClient *client = (imp_SocketClient *)
+                user_data;
         --(client->sends);
         if (client->sends == 0)
         {
@@ -300,11 +301,10 @@ private:
 //        event_base_loopexit(client->base, nullptr);
     }
 
-    static void
-    conn_readcb(struct bufferevent *bev, void *user_data)
+    static void conn_readcb(struct bufferevent *bev, void *user_data)
     {
-        imp_SocketClient * client = (imp_SocketClient * )
-        user_data;
+        imp_SocketClient *client = (imp_SocketClient *)
+                user_data;
         size_t ln = evbuffer_get_length(bufferevent_get_input(bev));
         char buffer[singleReadLen];
         while (ln > 0)
@@ -314,13 +314,9 @@ private:
             client->reader.write(buffer, rd);
             ln = evbuffer_get_length(bufferevent_get_input(bev));
         }
-//        event_loopbreak();
-//      event_base_loopexit(client->base, nullptr);
 
     }
 
-
-    //std::mutex waiter_mutex;
     size_t sends = 0;
     std::stringstream reader;
     event_base *base = nullptr;

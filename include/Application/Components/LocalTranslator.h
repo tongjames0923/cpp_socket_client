@@ -33,15 +33,15 @@ public:
 
     /// @brief 文件的总大小
     /// @return
-    size_t getTotalFileSize() const;
+    size_t getTotalFileSize() const noexcept;
 
     /// @brief 已发送的数据长度
     /// @return
-    size_t getSent() const;
+    size_t getSent() const noexcept;
 
     /// @brief 当前发送的文件名
     /// @return
-    std::string getFileName() const;
+    std::string getFileName() const noexcept;
 
     std::string getIp()const noexcept;
     int getPort()const noexcept;

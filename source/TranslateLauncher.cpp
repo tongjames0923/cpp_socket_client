@@ -48,6 +48,5 @@ int TranslateLauncher::groupSet(const char *argKey, size_t len) const noexcept
 
 void TranslateLauncher::cleanup()
 {
-    
     UI::shutdown_WhenEmpty();
 }

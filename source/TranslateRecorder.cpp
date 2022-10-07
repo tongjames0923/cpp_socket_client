@@ -19,7 +19,8 @@ int TranslateRecorder::pushRecord(LocalTranslator *task)
     if (task != nullptr)
     {
         int id =
-                std::chrono::duration_cast<std::chrono::nanoseconds>(std::chrono::system_clock::now().time_since_epoch()).count() %
+                std::chrono::duration_cast<std::chrono::nanoseconds>(
+                        std::chrono::system_clock::now().time_since_epoch()).count() %
                 (int) INT32_MAX;
         TranslateRecord rc(id, false, task->getSent(), task->getFileName().c_str(), task->getIp().c_str(),
                            task->getPort());

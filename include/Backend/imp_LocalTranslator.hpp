@@ -10,56 +10,20 @@
 #include <FileInfo.h>
 #include "imp_FileInfo.hpp"
 #include "imp_SocketClient.hpp"
+#include "Application/config.h"
 
+using data_ =
 #ifdef IMPL_ASIO
-
-using data_ = asio::mutable_buffer;
+asio::mutable_buffer
 #else
-
-class data_ {
-private:
-    std::unique_ptr<char[]> data = nullptr;
-    size_t len = 0;
-public:
-    explicit data_(size_t l) {
-        setSize(l);
-    }
-
-    explicit operator char *() noexcept {
-        return getData();
-    }
-
-    void setSize(size_t t) {
-        len = t;
-        if (t <= 0)
-            data.reset();
-        else
-            data.reset(new char[len]);
-    }
-
-    size_t getSize() const noexcept {
-        return len;
-    }
-
-    char *getData() noexcept {
-        return data.get();
-    }
-
-    size_t getData(char *des, size_t l) const noexcept {
-        size_t t = getSize();
-        t = l >= t ? t : l;
-        memcpy(des, data.get(), t);
-        return t;
-    }
-
-};
-
+PackedData
 #endif
-
+;
 
 PIMPL_IMPL(LocalTranslator)
 public:
-    imp_LocalTranslator() {
+    imp_LocalTranslator()
+    {
         prepared_status = not_prepared;
     }
 
