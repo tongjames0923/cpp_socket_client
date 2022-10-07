@@ -12,7 +12,6 @@ using namespace std;
 
 int main(int args, char *argc[])
 {
-    //cout<<sizeof(std::map<std::string, ArgData>)<<endl;
     Features::readConfig();
     Features::readRecord();
     UI::readyForThread();
@@ -39,7 +38,7 @@ int main(int args, char *argc[])
         UI::loop();
         cout << "\nbye~" << endl;
 
-#endif // !Debug
+#endif
 
         return 1;
     }

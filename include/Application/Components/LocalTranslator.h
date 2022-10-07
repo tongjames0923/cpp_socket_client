@@ -8,6 +8,11 @@
 #include "Pointerable.hpp"
 #include <functional>
 
+enum prepare_status
+{
+    not_prepared=0,preparing=1,prepared=2
+};
+
 
 /// @brief 传输文件封装类
 PIMPL_BEGIN_WITH_DELETER(LocalTranslator)
@@ -40,10 +45,9 @@ public:
 
     std::string getIp()const noexcept;
     int getPort()const noexcept;
-
-
+    prepare_status getPrepareStatus() const noexcept;
     bool prepareData();
-    bool hasPrepared()const noexcept;
+    void clear_data() noexcept;
 
     size_t sendPreparedData();
 PIMPL_END

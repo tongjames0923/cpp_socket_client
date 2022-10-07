@@ -24,32 +24,31 @@ public:
     explicit data_(size_t l) {
         setSize(l);
     }
-    explicit operator char*() noexcept
-    {
+
+    explicit operator char *() noexcept {
         return getData();
     }
-    void setSize(size_t t)
-    {
-        len=t;
-        if(t<=0)
+
+    void setSize(size_t t) {
+        len = t;
+        if (t <= 0)
             data.reset();
         else
-        data.reset(new char[len]);
+            data.reset(new char[len]);
     }
-    size_t getSize()const noexcept
-    {
+
+    size_t getSize() const noexcept {
         return len;
     }
-    char* getData()noexcept
-    {
+
+    char *getData() noexcept {
         return data.get();
     }
 
-    size_t getData(char* des,size_t l)const noexcept
-    {
-        size_t t=getSize();
-        t=l>=t?t:l;
-        memcpy(des,data.get(),t);
+    size_t getData(char *des, size_t l) const noexcept {
+        size_t t = getSize();
+        t = l >= t ? t : l;
+        memcpy(des, data.get(), t);
         return t;
     }
 
@@ -60,11 +59,16 @@ public:
 
 PIMPL_IMPL(LocalTranslator)
 public:
+    imp_LocalTranslator() {
+        prepared_status = not_prepared;
+    }
+
+    static constexpr const int not_prepared = 0, preparing = 1, prepared = 2;
     std::vector<data_> _data_q;
-    atomic_bool prepared;
-    char b_tmp[pack_Len];
+    atomic_int prepared_status{not_prepared};
+    char b_tmp[pack_Len]{0};
     imp_FileInfo fi;
-    atomic_ulong hassent;
+    atomic_ulong hassent{0};
     imp_SocketClient client;
 PIMPL_IMPL_END
 

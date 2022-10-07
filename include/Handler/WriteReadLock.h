@@ -9,18 +9,47 @@
 
 PIMPL_BEGIN_WITH_DELETER(WriteReadLock)
 public:
-    static constexpr const int READ_FIRST=0,WRITE_FIRST=1;
 WriteReadLock();
-    void lockWrite();
+void lockWrite();
 
-    void lockRead();
+void lockRead();
 
-    void unlockWrite();
+void unlockWrite();
 
-    void unlockRead();
+void unlockRead();
 
 PIMPL_END
 
+class w_Lock_Guard
+{
+    public:
+    w_Lock_Guard(WriteReadLock& lock)
+    {
+        rk=&lock;
+        rk->lockWrite();
+    }
+    ~w_Lock_Guard()
+    {
+        rk->unlockWrite();
+    }
+    private:
+    WriteReadLock* rk;
+};
+class r_Lock_Guard
+{
+    public:
+    r_Lock_Guard(WriteReadLock& lock)
+    {
+        rk=&lock;
+        rk->lockRead();
+    }
+    ~r_Lock_Guard()
+    {
+        rk->unlockRead();
+    }
+    private:
+        WriteReadLock* rk;
+};
 
 
-#endif //TESTER_WRITEREADLOCK_H
+#endif // TESTER_WRITEREADLOCK_H

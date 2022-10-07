@@ -72,11 +72,12 @@ bool LocalTranslator::Connect()
 bool LocalTranslator::prepareData()
 {
     imp_LocalTranslator &imp =*m_impl;
-    if (imp.prepared)
+    if (imp.prepared_status==imp_LocalTranslator::preparing)
     {
-        imp._data_q.clear();
-        imp.prepared = false;
+        throw std::runtime_error("object is preparing...");
     }
+    clear_data();
+    imp.prepared_status=imp_LocalTranslator::preparing;
     bool isok = false;
     isok = imp.fi.readFile(imp.b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
     {
@@ -89,13 +90,13 @@ bool LocalTranslator::prepareData()
 #endif
         return true;
     });
-    imp.prepared = isok;
+    imp.prepared_status=imp_LocalTranslator::prepared;
     return isok;
 }
 
 size_t LocalTranslator::sendPreparedData()
 {
-    if (!hasPrepared())
+    if (getPrepareStatus()!=prepared)
     {
         throw std::runtime_error("file was not prepared for send");
     }
@@ -152,11 +153,6 @@ size_t LocalTranslator::sendPreparedData()
     return ins.hassent;
 }
 
-bool LocalTranslator::hasPrepared() const noexcept
-{
-    return m_impl->prepared;
-}
-
 LocalTranslator::LocalTranslator(LocalTranslator &&other) noexcept
 {
     m_impl=std::move(other.m_impl);
@@ -171,6 +167,22 @@ int LocalTranslator::getPort() const noexcept
 {
     return m_impl->client.getPort();
 }
+
+prepare_status LocalTranslator::getPrepareStatus() const noexcept {
+    int v=m_impl->prepared_status;
+    return (prepare_status)(v);
+}
+
+void LocalTranslator::clear_data() noexcept
+{
+    if (getPrepareStatus()==prepared)
+    {
+        m_impl->prepared_status=imp_LocalTranslator::not_prepared;
+        m_impl->hassent=0;
+        m_impl->_data_q.clear();
+    }
+}
+
 void LocalTranslatorDeleter::operator()(imp_LocalTranslator *p) const
 {
     delete p;
