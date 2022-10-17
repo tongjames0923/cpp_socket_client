@@ -26,13 +26,11 @@ public:
     {
         prepared_status = not_prepared;
     }
-
-    static constexpr const int not_prepared = 0, preparing = 1, prepared = 2;
     std::vector<data_> _data_q;
-    atomic_int prepared_status{not_prepared};
-    char b_tmp[pack_Len]{0};
+    atomic<prepare_status> prepared_status;
+    char b_tmp[pack_Len];
     imp_FileInfo fi;
-    atomic_ulong hassent{0};
+    atomic_ulong hassent;
     imp_SocketClient client;
 PIMPL_IMPL_END
 

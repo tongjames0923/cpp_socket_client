@@ -52,9 +52,9 @@ bool LocalTranslator::Connect()
 bool LocalTranslator::prepareData()
 {
     imp_LocalTranslator &imp =*m_impl;
-    _if_error(imp.prepared_status==imp_LocalTranslator::preparing,"object is preparing...");
+    _if_error(imp.prepared_status==preparing,"object is preparing...");
     clear_data();
-    imp.prepared_status=imp_LocalTranslator::preparing;
+    imp.prepared_status=preparing;
     bool isok = false;
     isok = imp.fi.readFile(imp.b_tmp, pack_Len, [&imp](const int &pks, const size_t &per, const size_t &total) -> bool
     {
@@ -67,7 +67,7 @@ bool LocalTranslator::prepareData()
 #endif
         return true;
     });
-    imp.prepared_status=imp_LocalTranslator::prepared;
+    imp.prepared_status=prepared;
     return isok;
 }
 
@@ -151,7 +151,7 @@ void LocalTranslator::clear_data() noexcept
 {
     if (getPrepareStatus()==prepared)
     {
-        m_impl->prepared_status=imp_LocalTranslator::not_prepared;
+        m_impl->prepared_status=not_prepared;
         m_impl->hassent=0;
         m_impl->_data_q.clear();
     }

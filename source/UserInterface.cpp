@@ -19,6 +19,7 @@ namespace UI
 	constexpr const int code_print_text = 0, code_print_progress = 1, code_shutdown = 2, code_delay_shutdown = 3;
 	constexpr const char _done = '*', _undone = '-';
 	mutex send_right;
+	Loop* lp= nullptr;
 
 	struct ProgressData
 	{
@@ -31,6 +32,7 @@ namespace UI
 		if (!isReady())
 		{
 			ready();
+			lp=&getMyLoop();
 			_ui_handler.reset(new Handler());
 			_ui_handler->setHandle([](Message &message)
 			                       {
@@ -93,8 +95,9 @@ namespace UI
 	}
 	void loop()
 	{
-		readyForThread();
-		getMyLoop().loop();
+		if (!isReady())
+			readyForThread();
+		lp->loop();
 	}
 	void shutdown()
 	{
