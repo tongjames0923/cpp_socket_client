@@ -5,6 +5,7 @@
 #ifndef LOOP_H
 #define LOOP_H
 #include <thread>
+#include <functional>
 #include "Handler/Handler_Config.h"
 
 class Message;
@@ -45,6 +46,11 @@ bool isRunning() const noexcept;
 /// @brief 当前的线程id
 /// @return 
 std::thread::id getThreadId() const noexcept;
+
+void clearQueue();
+
+
+
 Loop();
 PIMPL_END
 

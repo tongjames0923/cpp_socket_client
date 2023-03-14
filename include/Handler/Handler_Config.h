@@ -7,9 +7,21 @@
 
 #include <chrono>
 #include "Pointerable.hpp"
+#include <string>
 
 ///单条消息最大数据尺寸
-#define MAX_MESSAGE_SIZE 1024 * 4
+#define MAX_MESSAGE_SIZE 128
+
+
+/**
+ * 消息队列的速度平衡因子，平衡发送和处理消息的速度推荐1-30内
+ */
+#define Speed_Balance_Factor 4
+
+/**
+ * 消息队列的速度平衡因子，队列等待因子，推荐1000-5000
+ */
+#define Speed_Balance_Factor_MAX_QUEUE 128
 /// @brief 标准延迟时间单位
 using delay_time = long long int;
 /**
@@ -22,6 +34,21 @@ using acc_time = std::chrono::microseconds;
  */
 using _acc = std::chrono::milliseconds;
 
+#define DEBUG
+#define MESSAGEQUEUE_TYPE_PRIORITYQUEUE
+
+#ifndef MESSAGEQUEUE_TYPE_PRIORITYQUEUE
+
+#define TIMEWHEEL_CLEAN_LIMIT 0
+#endif // !MESSAGEQUEUE_TYPE_PRIORITYQUEUE
+
+const std::string MessageQueueImpl=
+#ifdef MESSAGEQUEUE_TYPE_PRIORITYQUEUE
+"优先队列"
+#else
+        "时间轮"
+#endif
+        ;
 /// @brief 时间转换工具
 namespace Tool
 {
@@ -34,7 +61,7 @@ namespace Tool
     {
         return std::chrono::duration_cast<acc_time>(dur).count();
     }
-    /// @brief 
+    /// @brief
     /// @return 符合当前的内部单位的时间戳
     delay_time getTimeForNow();
 

@@ -9,6 +9,7 @@
 
 class Handler;
 
+
 PIMPL_BEGIN_WITH_DELETER(Message)
 public:
 
@@ -70,7 +71,11 @@ void getData(T *data) const
 /// @brief 获取当前万能数据的有效长度
 /// @return 
 size_t getDataSize() const noexcept;
+
+static size_t  getDataMaxSize()noexcept;
 #endif
+int getPriority() const noexcept;
+void setPriority(int priority) noexcept;
 Message &operator=(Message &&o) noexcept;
 Message(Message &&o) noexcept;
 Message(const Message &ot);
@@ -93,5 +98,15 @@ explicit Message(int code);
 /// @param mHandler 
 void setHandler(Handler *mHandler);
 PIMPL_END
+#ifdef MESSAGEQUEUE_TYPE_PRIORITYQUEUE
+class DelayMessage
+{
+public:
+	Message msg;
+	delay_time time;
+	DelayMessage(Message&& msg, delay_time time);
+	bool  operator <(const DelayMessage& mg) const;
+};
 
+#endif
 #endif // TESTER_MESSAGE_H

@@ -63,7 +63,7 @@ public:
             if (keep)
                 throw std::runtime_error("had watching");
             keep = true;
-            std::thread look(m_async_task, this, getter);
+            thread look(m_async_task, this, getter);
             look.detach();
             return;
         }
@@ -93,7 +93,7 @@ public:
     }
     /// @brief 当前是否在监视中
     /// @return
-    bool isWatching() const noexcept
+    bool isWatching() const
     {
         return keep;
     }
@@ -103,17 +103,17 @@ private:
     Rate m_rate;
     watch_function m_watcher;
     std::mutex m_data_mut;
-    std::promise<void> stop_p;
-    std::future<void> fp = stop_p.get_future();
-    std::atomic_bool keep;
-    std::atomic_int m_tick;
+    promise<void> stop_p;
+    future<void> fp = stop_p.get_future();
+    atomic_bool keep;
+    atomic_int m_tick;
 
     static void m_async_task(DataWatcher<ARGS> *watcher, data_get_function gt)
     {
         while (watcher->isWatching())
         {
-            std::future_status status = watcher->fp.wait_for(std::chrono::milliseconds(watcher->m_tick));
-            if (status == std::future_status::ready)
+            future_status status = watcher->fp.wait_for(chrono::milliseconds(watcher->m_tick));
+            if (status == future_status::ready)
             {
                 watcher->keep = false;
                 break;

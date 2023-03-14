@@ -35,6 +35,10 @@ void setOnEmptyFunction(std::function<void()> f);
 /// @return 
 bool isEmpty() const;
 
+size_t size() const;
+
+void clear();
+
 MessageQueue();
 PIMPL_END
 
