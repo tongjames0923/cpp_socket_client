@@ -10,7 +10,7 @@
 #include <string>
 
 ///单条消息最大数据尺寸
-#define MAX_MESSAGE_SIZE 128
+#define MAX_MESSAGE_SIZE 4096
 
 
 /**

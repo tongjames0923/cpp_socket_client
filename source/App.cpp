@@ -18,6 +18,7 @@
 #include <cmath>
 #include <TranslateRecorder.h>
 #include "Error.hpp"
+#include <condition_variable>
 
 static TranslateLauncher launcher;
 using boost::format;
@@ -30,7 +31,7 @@ constexpr const unsigned SUCCESS = 1, NOT_FOUND = 2, INVALID_NEED = 3, FAILED_TO
 
 
 int pickArg(int cmd, int need, std::vector<std::string> &args, Launcher *launcher) {
-    std::string key(TranslateLauncher::COMMAND[cmd]);
+    std::string key(COMMAND[cmd]);
     ArgInfo info;
     bool found = launcher->getArgInfo(key, &info);
     if (found) {
@@ -201,7 +202,7 @@ namespace Features {
             nickNames[args[0]] = args[1];
             outPutConfig();
             return true;
-        }, TranslateLauncher::cmd_config_nick, 2, owner);
+        },cmd_config_nick, 2, owner);
     }
 
     void forShowNick(Launcher *owner) {
@@ -213,7 +214,7 @@ namespace Features {
                 //printf("nickName:%s\tip:%s\n", i.first.c_str(), i.second.c_str());
             }
             return true;
-        }, TranslateLauncher::cmd_nick, 0, owner);
+        }, cmd_nick, 0, owner);
 
     }
 
@@ -280,7 +281,7 @@ namespace Features {
             }
 
             return multiRun(translators);
-        }, TranslateLauncher::cmd_run, -1, owner);
+        }, cmd_run, -1, owner);
 
     }
 
@@ -312,7 +313,7 @@ namespace Features {
             catch (...) {
                 return false;
             }
-        }, TranslateLauncher::cmd_run_port, 3, owner);
+        }, cmd_run_port, 3, owner);
     }
 
     void readRecord() {
@@ -349,7 +350,7 @@ namespace Features {
             }
             //delete [] tr;
             return true;
-        }, TranslateLauncher::cmd_history, 0, owner);
+        }, cmd_history, 0, owner);
     }
 
     void forRetry(Launcher *owner) {
@@ -367,7 +368,7 @@ namespace Features {
                 translators.emplace_back(std::move(LocalTranslator(tr[i]._filePath, tr[i]._ip, tr[i]._port)));
             }
             return multiRun(translators);
-        }, TranslateLauncher::cmd_retry, 1, owner);
+        }, cmd_retry, 1, owner);
 
     }
 

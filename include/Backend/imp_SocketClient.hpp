@@ -52,7 +52,7 @@ typedef boost::asio::ip::tcp TCP;
 #include <thread>
 #include <sstream>
 #include <atomic>
-#include <arpa/inet.h>
+#include <winsock2.h>
 #include <cstring>
 #include "Application/config.h"
 
