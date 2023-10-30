@@ -17,7 +17,7 @@ if (${CMAKE_BUILD_TYPE} STREQUAL Debug)
 else ()
     set(DEBUG_MODE RELEASE_MODE)
     set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/relruntime)
-    link_directories("/opt/homebrew/lib" ${PROJECT_SOURCE_DIR}/rellib)
+    link_directories("/opt/homebrew/lib" ${PROJECT_SOURCE_DIR}/lib)
 endif ()
 
 include_directories(${boost} ${PROJECT_SOURCE_DIR}/include)

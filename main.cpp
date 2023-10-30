@@ -1,6 +1,7 @@
 
 #include <iostream>
 #include <Launcher.h>
+
 #include "Application/App.h"
 #include "Application/config.h"
 #include "Application/Components/UserInterface.h"
@@ -12,6 +13,10 @@ using namespace std;
 
 int main(int args, char *argc[])
 {
+#ifdef WIN32
+    WSADATA wsa_data;
+    WSAStartup(0x0201, &wsa_data);
+#endif
     Features::readConfig();
     Features::readRecord();
     UI::readyForThread();
